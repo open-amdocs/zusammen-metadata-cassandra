@@ -1,0 +1,10 @@
+{
+  "configuration": {
+    "level": 1,
+    "plugins": {
+      "tsuzammen_state_store": {
+        "implementationClass": "org.amdocs.tsuzammen.plugin.statestore.cassandra.CassandraStateStore"
+      }
+    }
+  }
+}

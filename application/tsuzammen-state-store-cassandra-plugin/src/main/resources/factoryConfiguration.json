@@ -1,0 +1,7 @@
+{
+  "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDaoFactory": "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl.ItemCassandraDaoFactory",
+  "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDaoFactory": "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl.VersionCassandraDaoFactory",
+  "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.EntityDaoFactory": "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl.EntityCassandraDaoFactory",
+  "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.RelationDaoFactory": "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl.RelationCassandraDaoFactory",
+  "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.WorkspaceDaoFactory": "org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl.WorkspaceCassandraDaoFactory"
+}
