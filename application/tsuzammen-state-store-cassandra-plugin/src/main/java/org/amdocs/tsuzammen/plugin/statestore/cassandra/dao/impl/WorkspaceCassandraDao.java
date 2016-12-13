@@ -4,7 +4,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
-import org.amdocs.tsuzammen.commons.datatypes.Id;
+
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 import org.amdocs.tsuzammen.commons.datatypes.workspace.WorkspaceInfo;
@@ -22,19 +22,19 @@ public class WorkspaceCassandraDao implements WorkspaceDao {
   }
 
   @Override
-  public void create(SessionContext context, Id workspaceId, Info workspaceInfo) {
+  public void create(SessionContext context, String workspaceId, Info workspaceInfo) {
     save(context, workspaceId, workspaceInfo);
   }
 
   @Override
-  public void save(SessionContext context, Id workspaceId, Info workspaceInfo) {
-    getAccessor(context).save(context.getUser().getUserName(), workspaceId.getValue(),
+  public void save(SessionContext context, String workspaceId, Info workspaceInfo) {
+    getAccessor(context).save(context.getUser().getUserName(), workspaceId,
         JsonUtil.object2Json(workspaceInfo));
   }
 
   @Override
-  public void delete(SessionContext context, Id workspaceId) {
-    getAccessor(context).delete(context.getUser().getUserName(), workspaceId.getValue());
+  public void delete(SessionContext context, String workspaceId) {
+    getAccessor(context).delete(context.getUser().getUserName(), workspaceId);
   }
 
   @Override
@@ -45,7 +45,7 @@ public class WorkspaceCassandraDao implements WorkspaceDao {
 
   private WorkspaceInfo createWorkspaceInfo(Row row) {
     WorkspaceInfo workspaceInfo = new WorkspaceInfo();
-    workspaceInfo.setId(new Id(row.getString(Field.WORKSPACE_ID)));
+    workspaceInfo.setId(new String(row.getString(Field.WORKSPACE_ID)));
     workspaceInfo.setInfo(JsonUtil.json2Object(row.getString(Field.WORKSPACE_INFO), Info.class));
     return workspaceInfo;
   }

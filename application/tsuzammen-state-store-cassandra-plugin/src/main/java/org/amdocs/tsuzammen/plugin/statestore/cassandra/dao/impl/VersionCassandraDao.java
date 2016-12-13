@@ -3,7 +3,7 @@ package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
-import org.amdocs.tsuzammen.commons.datatypes.Id;
+
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDao;
@@ -12,20 +12,20 @@ import org.amdocs.tsuzammen.utils.fileutils.json.JsonUtil;
 public class VersionCassandraDao implements VersionDao {
 
   @Override
-  public void create(SessionContext context, String space, Id itemId, Id versionId,
-                     Id baseVersionId, Info versionInfo) {
-    getAccessor(context).create(space, itemId.getValue(), versionId.getValue(),
-        baseVersionId.getValue(), JsonUtil.object2Json(versionInfo));
+  public void create(SessionContext context, String space, String itemId, String versionId,
+                     String baseVersionId, Info versionInfo) {
+    getAccessor(context).create(space, itemId, versionId,
+        baseVersionId, JsonUtil.object2Json(versionInfo));
   }
 
   @Override
-  public void delete(SessionContext context, String space, Id itemId, Id versionId) {
+  public void delete(SessionContext context, String space, String itemId, String versionId) {
     getAccessor(context)
-        .delete(space, itemId.getValue(), versionId.getValue());
+        .delete(space, itemId, versionId);
   }
 
   @Override
-  public Info get(SessionContext context, String space, Id itemId, Id versionId) {
+  public Info get(SessionContext context, String space, String itemId, String versionId) {
     return null;
   }
 

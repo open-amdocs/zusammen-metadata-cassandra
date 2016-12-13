@@ -3,7 +3,7 @@ package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
-import org.amdocs.tsuzammen.commons.datatypes.Id;
+
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDao;
@@ -17,20 +17,20 @@ public class ItemCassandraDao implements ItemDao {
   }
 
   @Override
-  public void save(SessionContext context, Id itemId, Info itemInfo) {
+  public void save(SessionContext context, String itemId, Info itemInfo) {
     CassandraDaoUtils.getAccessor(context, ItemAccessor.class).
-        save(itemId.getValue(), JsonUtil.object2Json(itemInfo));
+        save(itemId, JsonUtil.object2Json(itemInfo));
   }
 
   @Override
-  public void delete(SessionContext context, Id itemId) {
-    CassandraDaoUtils.getAccessor(context, ItemAccessor.class).delete(itemId.getValue());
+  public void delete(SessionContext context, String itemId) {
+    CassandraDaoUtils.getAccessor(context, ItemAccessor.class).delete(itemId);
   }
 
   @Override
-  public Info get(SessionContext context, Id itemId) {
+  public Info get(SessionContext context, String itemId) {
     return JsonUtil.json2Object(CassandraDaoUtils.getAccessor(context, ItemAccessor.class).
-        get(itemId.getValue()).one().getString(ItemField.ITEM_INFO), Info.class);
+        get(itemId).one().getString(ItemField.ITEM_INFO), Info.class);
   }
 
 

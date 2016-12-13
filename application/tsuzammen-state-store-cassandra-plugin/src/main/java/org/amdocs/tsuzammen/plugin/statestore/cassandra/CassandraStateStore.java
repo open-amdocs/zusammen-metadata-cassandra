@@ -1,6 +1,6 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
-import org.amdocs.tsuzammen.commons.datatypes.Id;
+
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 import org.amdocs.tsuzammen.commons.datatypes.item.RelationInfo;
@@ -19,22 +19,22 @@ import java.util.Map;
 public class CassandraStateStore implements StateStore {
 
   @Override
-  public void createItem(SessionContext context, Id itemId, Info itemInfo) {
+  public void createItem(SessionContext context, String itemId, Info itemInfo) {
     saveItem(context, itemId, itemInfo);
   }
 
   @Override
-  public void saveItem(SessionContext context, Id itemId, Info itemInfo) {
+  public void saveItem(SessionContext context, String itemId, Info itemInfo) {
     getItemDao(context).save(context, itemId, itemInfo);
   }
 
   @Override
-  public void deleteItem(SessionContext context, Id itemId) {
+  public void deleteItem(SessionContext context, String itemId) {
     getItemDao(context).delete(context, itemId);
   }
 
   @Override
-  public void createItemVersion(SessionContext context, Id itemId, Id baseVersionId, Id versionId,
+  public void createItemVersion(SessionContext context, String itemId, String baseVersionId, String versionId,
                                 Info versionInfo) {
     String space = context.getUser().getUserName();
     getVersionDao(context).create(context, space, itemId, versionId, baseVersionId, versionInfo);
@@ -42,17 +42,17 @@ public class CassandraStateStore implements StateStore {
   }
 
   @Override
-  public void createWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
+  public void createWorkspace(SessionContext context, String workspaceId, Info workspaceInfo) {
 
   }
 
   @Override
-  public void saveWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
+  public void saveWorkspace(SessionContext context, String workspaceId, Info workspaceInfo) {
 
   }
 
   @Override
-  public void deleteWorkspace(SessionContext context, Id workspaceId) {
+  public void deleteWorkspace(SessionContext context, String workspaceId) {
 
   }
 
@@ -61,11 +61,11 @@ public class CassandraStateStore implements StateStore {
     return null;
   }
 
-  private void copyRelationsFromBaseVersion(SessionContext context, String space, Id itemId,
-                                            Id baseVersionId, Id versionId) {
+  private void copyRelationsFromBaseVersion(SessionContext context, String space, String itemId,
+                                            String baseVersionId, String versionId) {
     RelationDao relationDao = getRelationDao(context);
 
-    Map<Id, RelationInfo> baseVersionRelations =
+    Map<String, RelationInfo> baseVersionRelations =
         relationDao.list(context, space, itemId, baseVersionId,
             StateStoreConstants.VERSION_PARENT_ENTITY_ID,
             StateStoreConstants.VERSION_PARENT_CONTENT_NAME,

@@ -6,7 +6,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
-import org.amdocs.tsuzammen.commons.datatypes.Id;
+
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.item.RelationInfo;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.RelationDao;
@@ -23,42 +23,42 @@ public class RelationCassandraDao implements RelationDao {
   }
 
   @Override
-  public void save(SessionContext context, String space, Id itemId, Id versionId,
-                   Id parentEntityId, String parentContentName, Id entityId, Id relationId,
+  public void save(SessionContext context, String space, String itemId, String versionId,
+                   String parentEntityId, String parentContentName, String entityId, String relationId,
                    RelationInfo relation) {
     CassandraDaoUtils.getSession(context)
-        .execute(getAccessor(context).save(space, itemId.getValue(),
-            versionId.getValue(),
-            parentEntityId.getValue(), parentContentName, entityId.getValue(),
-            relationId.getValue(),
+        .execute(getAccessor(context).save(space, itemId,
+            versionId,
+            parentEntityId, parentContentName, entityId,
+            relationId,
             JsonUtil.object2Json(relation)));
   }
 
   @Override
-  public void save(SessionContext context, String space, Id itemId, Id versionId,
-                   Id parentEntityId, String parentContentName, Id entityId,
-                   Map<Id, RelationInfo> relations) {
+  public void save(SessionContext context, String space, String itemId, String versionId,
+                   String parentEntityId, String parentContentName, String entityId,
+                   Map<String, RelationInfo> relations) {
     RelationAccessor accessor = getAccessor(context);
 
     BatchStatement saveBatch = new BatchStatement();
     relations.entrySet().forEach(relationEntry ->
-        saveBatch.add((accessor.save(space, itemId.getValue(), versionId.getValue(),
-            parentEntityId.getValue(), parentContentName, entityId.getValue(),
-            relationEntry.getKey().getValue(),
+        saveBatch.add((accessor.save(space, itemId, versionId,
+            parentEntityId, parentContentName, entityId,
+            relationEntry.getKey(),
             JsonUtil.object2Json(relationEntry.getValue())))));
 
     CassandraDaoUtils.getSession(context).execute(saveBatch);
   }
 
   @Override
-  public Map<Id, RelationInfo> list(SessionContext context, String space, Id itemId,
-                                    Id versionId, Id parentEntityId, String parentContentName,
-                                    Id entityId) {
-    ResultSet rows = getAccessor(context).list(space, itemId.getValue(), versionId.getValue(),
-        parentEntityId.getValue(), parentContentName, entityId.getValue());
+  public Map<String, RelationInfo> list(SessionContext context, String space, String itemId,
+                                    String versionId, String parentEntityId, String parentContentName,
+                                    String entityId) {
+    ResultSet rows = getAccessor(context).list(space, itemId, versionId,
+        parentEntityId, parentContentName, entityId);
 
     return rows.all().stream().collect(Collectors.toMap(
-        row -> new Id(row.getString(Field.RELATION_ID)),
+        row -> new String(row.getString(Field.RELATION_ID)),
         this::createRelation));
   }
 
