@@ -8,6 +8,8 @@ public interface VersionDao {
   void create(SessionContext context, String space, String itemId, String versionId, String baseVersionId,
               Info versionInfo);
 
+  void save(SessionContext context, String space, String itemId, String versionId, Info versionInfo);
+
   void delete(SessionContext context, String space, String itemId, String versionId);
 
 

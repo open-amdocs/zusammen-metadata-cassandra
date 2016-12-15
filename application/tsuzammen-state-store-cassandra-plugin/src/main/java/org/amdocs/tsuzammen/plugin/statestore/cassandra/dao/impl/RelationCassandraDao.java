@@ -6,9 +6,8 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
-
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.RelationInfo;
+import org.amdocs.tsuzammen.commons.datatypes.item.Relation;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.RelationDao;
 import org.amdocs.tsuzammen.utils.fileutils.json.JsonUtil;
 
@@ -24,8 +23,9 @@ public class RelationCassandraDao implements RelationDao {
 
   @Override
   public void save(SessionContext context, String space, String itemId, String versionId,
-                   String parentEntityId, String parentContentName, String entityId, String relationId,
-                   RelationInfo relation) {
+                   String parentEntityId, String parentContentName, String entityId,
+                   String relationId,
+                   Relation relation) {
     CassandraDaoUtils.getSession(context)
         .execute(getAccessor(context).save(space, itemId,
             versionId,
@@ -37,7 +37,7 @@ public class RelationCassandraDao implements RelationDao {
   @Override
   public void save(SessionContext context, String space, String itemId, String versionId,
                    String parentEntityId, String parentContentName, String entityId,
-                   Map<String, RelationInfo> relations) {
+                   Map<String, Relation> relations) {
     RelationAccessor accessor = getAccessor(context);
 
     BatchStatement saveBatch = new BatchStatement();
@@ -51,19 +51,20 @@ public class RelationCassandraDao implements RelationDao {
   }
 
   @Override
-  public Map<String, RelationInfo> list(SessionContext context, String space, String itemId,
-                                    String versionId, String parentEntityId, String parentContentName,
+  public Map<String, Relation> list(SessionContext context, String space, String itemId,
+                                    String versionId, String parentEntityId,
+                                    String parentContentName,
                                     String entityId) {
     ResultSet rows = getAccessor(context).list(space, itemId, versionId,
         parentEntityId, parentContentName, entityId);
 
     return rows.all().stream().collect(Collectors.toMap(
-        row -> new String(row.getString(Field.RELATION_ID)),
+        row -> row.getString(Field.RELATION_ID),
         this::createRelation));
   }
 
-  private RelationInfo createRelation(Row row) {
-    return JsonUtil.json2Object(row.getString(Field.RELATION), RelationInfo.class);
+  private Relation createRelation(Row row) {
+    return JsonUtil.json2Object(row.getString(Field.RELATION), Relation.class);
   }
 
   private RelationAccessor getAccessor(SessionContext context) {

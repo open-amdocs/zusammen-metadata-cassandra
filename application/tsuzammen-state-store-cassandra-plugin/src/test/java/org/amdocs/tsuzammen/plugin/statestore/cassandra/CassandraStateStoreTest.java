@@ -1,13 +1,10 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
 
-
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.UserInfo;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 import org.testng.annotations.Test;
-
-import java.util.Optional;
 
 public class CassandraStateStoreTest {
 
@@ -18,8 +15,8 @@ public class CassandraStateStoreTest {
     itemInfo.addProperty("Desc", "desc_value");
 
     CassandraStateStore stateStore = new CassandraStateStore();
-    SessionContext context = createSessionContext(new UserInfo("testUser"), "test");
-    stateStore.createItem(context, new String("itemId"), itemInfo);
+    SessionContext context = TestUtils.createSessionContext(new UserInfo("testUser"), "test");
+    stateStore.createItem(context, "itemId", itemInfo);
   }
 
   @Test
@@ -29,17 +26,8 @@ public class CassandraStateStoreTest {
     versionInfo.addProperty("Desc", "desc_value");
 
     CassandraStateStore stateStore = new CassandraStateStore();
-    SessionContext context = createSessionContext(new UserInfo("testUser"), "test");
-    stateStore.createItemVersion(context, new String("itemId"), new String("baseVersionId"), new String
-            ("versionId"),
-        versionInfo);
+    SessionContext context = TestUtils.createSessionContext(new UserInfo("testUser"), "test");
+    stateStore
+        .createItemVersion(context, "itemId", "baseVersionId", "versionId", versionInfo);
   }
-
-  private SessionContext createSessionContext(UserInfo user, String tenant) {
-    SessionContext context = new SessionContext();
-    context.setUser(user);
-    context.setTenant(Optional.ofNullable(tenant).get());
-    return context;
-  }
-
 }
