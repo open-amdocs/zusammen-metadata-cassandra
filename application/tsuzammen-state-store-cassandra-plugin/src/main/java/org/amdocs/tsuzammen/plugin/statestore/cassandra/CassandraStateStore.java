@@ -4,6 +4,8 @@ package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.impl.item.EntityInfo;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
+import org.amdocs.tsuzammen.commons.datatypes.item.Item;
+import org.amdocs.tsuzammen.commons.datatypes.item.ItemVersion;
 import org.amdocs.tsuzammen.commons.datatypes.item.Relation;
 import org.amdocs.tsuzammen.commons.datatypes.workspace.WorkspaceInfo;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.EntityDao;
@@ -17,12 +19,23 @@ import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDaoFactory;
 import org.amdocs.tsuzammen.sdk.StateStore;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class CassandraStateStore implements StateStore {
 
   private static final String PUBLIC_SPACE = "public";
+
+  @Override
+  public Collection<Item> listItems(SessionContext context) {
+    return getItemDao(context).list(context);
+  }
+
+  @Override
+  public Item getItem(SessionContext context, String itemId) {
+    return getItemDao(context).get(context, itemId).get();
+  }
 
   @Override
   public void createItem(SessionContext context, String itemId, Info itemInfo) {
@@ -40,11 +53,26 @@ public class CassandraStateStore implements StateStore {
   }
 
   @Override
+  public Collection<ItemVersion> listItemVersions(SessionContext sessionContext, String s) {
+    return null;
+  }
+
+  @Override
+  public ItemVersion getItemVersion(SessionContext sessionContext, String s, String s1) {
+    return null;
+  }
+
+  @Override
   public void createItemVersion(SessionContext context, String itemId, String baseVersionId,
                                 String versionId, Info versionInfo) {
     String privateSpace = context.getUser().getUserName();
     getVersionDao(context)
         .create(context, privateSpace, itemId, versionId, baseVersionId, versionInfo);
+
+    if (baseVersionId == null) {
+      return;
+    }
+
     copyRelationsFromBaseVersion(context, privateSpace, itemId, baseVersionId, versionId);
   }
 
