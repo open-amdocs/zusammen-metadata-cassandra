@@ -5,17 +5,17 @@ import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 
 import java.net.URI;
 
-public interface EntityDao {
+public interface ElementDao {
   void create(SessionContext context, String space, String itemId, String versionId, URI namespace,
-              String entityId, Info entityInfo);
+              String elementId, Info elementInfo);
 
   void save(SessionContext context, String space, String itemId, String versionId, URI namespace,
-            String entityId,
-            Info entityInfo);
+            String elementId,
+            Info elementInfo);
 
   void delete(SessionContext context, String space, String itemId, String versionId, URI namespace,
-              String entityId);
+              String elementId);
 
-  Info get(SessionContext context, String space, String itemId, String versionId, URI namespace,
-           String entityId);
+    Info get(SessionContext context, String space, String itemId, String versionId, URI namespace,
+           String elementId);
 }

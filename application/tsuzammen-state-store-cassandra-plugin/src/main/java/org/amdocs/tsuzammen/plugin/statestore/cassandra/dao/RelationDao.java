@@ -25,14 +25,14 @@ import java.util.Map;
 public interface RelationDao {
 
   void save(SessionContext context, String space, String itemId, String versionId,
-            String parentEntityId,
-            String contentName, String entityId, String relationId, Relation relation);
+            String parentElementId,
+            String contentName, String elementId, String relationId, Relation relation);
 
   void save(SessionContext context, String space, String itemId, String versionId,
-            String parentEntityId,
-            String parentContentName, String entityId, Map<String, Relation> relations);
+            String parentElementId,
+            String parentContentName, String elementId, Map<String, Relation> relations);
 
 
   Map<String, Relation> list(SessionContext context, String space, String itemId, String versionId,
-                             String parentEntityId, String contentName, String entityId);
+                             String parentElementId, String contentName, String elementId);
 }

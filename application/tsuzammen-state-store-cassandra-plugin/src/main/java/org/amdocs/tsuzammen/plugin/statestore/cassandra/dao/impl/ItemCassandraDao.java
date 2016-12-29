@@ -4,6 +4,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
+import org.amdocs.tsuzammen.commons.datatypes.Id;
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 import org.amdocs.tsuzammen.commons.datatypes.item.Item;
@@ -23,24 +24,24 @@ public class ItemCassandraDao implements ItemDao {
   }
 
   @Override
-  public void create(SessionContext context, String itemId, Info itemInfo) {
+  public void create(SessionContext context, Id itemId, Info itemInfo) {
     save(context, itemId, itemInfo);
   }
 
   @Override
-  public void save(SessionContext context, String itemId, Info itemInfo) {
+  public void save(SessionContext context, Id itemId, Info itemInfo) {
     CassandraDaoUtils.getAccessor(context, ItemAccessor.class).
-        save(itemId, JsonUtil.object2Json(itemInfo));
+        save(itemId.getValue().toString(), JsonUtil.object2Json(itemInfo));
   }
 
   @Override
-  public void delete(SessionContext context, String itemId) {
-    CassandraDaoUtils.getAccessor(context, ItemAccessor.class).delete(itemId);
+  public void delete(SessionContext context, Id itemId) {
+    CassandraDaoUtils.getAccessor(context, ItemAccessor.class).delete(itemId.getValue().toString());
   }
 
   @Override
-  public Optional<Item> get(SessionContext context, String itemId) {
-    Row row = CassandraDaoUtils.getAccessor(context, ItemAccessor.class).get(itemId).one();
+  public Optional<Item> get(SessionContext context, Id itemId) {
+    Row row = CassandraDaoUtils.getAccessor(context, ItemAccessor.class).get(itemId.getValue().toString()).one();
     return row == null ? Optional.empty() : Optional.of(createItem(row));
   }
 

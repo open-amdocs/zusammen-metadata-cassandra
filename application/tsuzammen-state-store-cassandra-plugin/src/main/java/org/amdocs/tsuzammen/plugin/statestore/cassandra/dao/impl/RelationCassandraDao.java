@@ -23,27 +23,27 @@ public class RelationCassandraDao implements RelationDao {
 
   @Override
   public void save(SessionContext context, String space, String itemId, String versionId,
-                   String parentEntityId, String parentContentName, String entityId,
+                   String parentElementId, String parentContentName, String elementId,
                    String relationId,
                    Relation relation) {
     CassandraDaoUtils.getSession(context)
         .execute(getAccessor(context).save(space, itemId,
             versionId,
-            parentEntityId, parentContentName, entityId,
+            parentElementId, parentContentName, elementId,
             relationId,
             JsonUtil.object2Json(relation)));
   }
 
   @Override
   public void save(SessionContext context, String space, String itemId, String versionId,
-                   String parentEntityId, String parentContentName, String entityId,
+                   String parentElementId, String parentContentName, String elementId,
                    Map<String, Relation> relations) {
     RelationAccessor accessor = getAccessor(context);
 
     BatchStatement saveBatch = new BatchStatement();
     relations.entrySet().forEach(relationEntry ->
         saveBatch.add((accessor.save(space, itemId, versionId,
-            parentEntityId, parentContentName, entityId,
+            parentElementId, parentContentName, elementId,
             relationEntry.getKey(),
             JsonUtil.object2Json(relationEntry.getValue())))));
 
@@ -52,11 +52,11 @@ public class RelationCassandraDao implements RelationDao {
 
   @Override
   public Map<String, Relation> list(SessionContext context, String space, String itemId,
-                                    String versionId, String parentEntityId,
+                                    String versionId, String parentElementId,
                                     String parentContentName,
-                                    String entityId) {
+                                    String elementId) {
     ResultSet rows = getAccessor(context).list(space, itemId, versionId,
-        parentEntityId, parentContentName, entityId);
+        parentElementId, parentContentName, elementId);
 
     return rows.all().stream().collect(Collectors.toMap(
         row -> row.getString(Field.RELATION_ID),
@@ -73,15 +73,15 @@ public class RelationCassandraDao implements RelationDao {
 
   @Accessor
   interface RelationAccessor {
-    @Query("insert into relation (space, item_id, version_id, parent_entity_id, " +
-        "parent_content_name, entity_id, relation_id, relation) values (?, ?, ?, ?, ?, ?, ?, ?)")
+    @Query("insert into relation (space, item_id, version_id, parent_element_id, " +
+        "parent_content_name, element_id, relation_id, relation) values (?, ?, ?, ?, ?, ?, ?, ?)")
     Statement save(String space, String itemId, String versionId,
-                   String parentEntityId, String contentName, String entityId, String relationId,
+                   String parentElementId, String contentName, String elementId, String relationId,
                    String relation);
 
     @Query("select relation_id, relation from relation where space=? and item_id=? " +
-        "and version_id=? and parent_entity_id=? and parent_content_name=? and entity_id = ?")
+        "and version_id=? and parent_element_id=? and parent_content_name=? and element_id = ?")
     ResultSet list(String space, String itemId, String versionId,
-                   String parentEntityId, String contentName, String entityId);
+                   String parentElementId, String contentName, String elementId);
   }
 }

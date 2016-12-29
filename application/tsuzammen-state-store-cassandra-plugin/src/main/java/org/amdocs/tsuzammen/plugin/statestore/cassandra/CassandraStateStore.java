@@ -17,15 +17,18 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
 
+import org.amdocs.tsuzammen.commons.datatypes.Id;
 import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.impl.item.EntityInfo;
+import org.amdocs.tsuzammen.commons.datatypes.impl.item.ElementInfo;
+import org.amdocs.tsuzammen.commons.datatypes.item.ElementContext;
+import org.amdocs.tsuzammen.commons.datatypes.item.ElementNamespace;
 import org.amdocs.tsuzammen.commons.datatypes.item.Info;
 import org.amdocs.tsuzammen.commons.datatypes.item.Item;
 import org.amdocs.tsuzammen.commons.datatypes.item.ItemVersion;
 import org.amdocs.tsuzammen.commons.datatypes.item.Relation;
 import org.amdocs.tsuzammen.commons.datatypes.workspace.WorkspaceInfo;
-import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.EntityDao;
-import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.EntityDaoFactory;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementDao;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementDaoFactory;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDao;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDaoFactory;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.RelationDao;
@@ -34,10 +37,10 @@ import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDao;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDaoFactory;
 import org.amdocs.tsuzammen.sdk.StateStore;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class CassandraStateStore implements StateStore {
 
@@ -49,38 +52,54 @@ public class CassandraStateStore implements StateStore {
   }
 
   @Override
-  public Item getItem(SessionContext context, String itemId) {
-    return getItemDao(context).get(context, itemId).get();
+  public boolean isItemExist(SessionContext context, Id itemId) {
+    return false;
   }
 
   @Override
-  public void createItem(SessionContext context, String itemId, Info itemInfo) {
+  public Item getItem(SessionContext context, Id itemId) {
+    return getOptionalItem(context, itemId).orElseThrow(() ->
+        new RuntimeException(String.format(StateStoreMessages.ITEM_NOT_EXIST, itemId)));
+  }
+
+  @Override
+  public void createItem(SessionContext context, Id itemId, Info itemInfo) {
     getItemDao(context).create(context, itemId, itemInfo);
   }
 
   @Override
-  public void saveItem(SessionContext context, String itemId, Info itemInfo) {
+  public void saveItem(SessionContext context, Id itemId, Info itemInfo) {
     getItemDao(context).save(context, itemId, itemInfo);
   }
 
   @Override
-  public void deleteItem(SessionContext context, String itemId) {
+  public void deleteItem(SessionContext context, Id itemId) {
     getItemDao(context).delete(context, itemId);
   }
 
   @Override
-  public Collection<ItemVersion> listItemVersions(SessionContext sessionContext, String s) {
-    return null;
+  public Collection<ItemVersion> listItemVersions(SessionContext context, Id itemId) {
+    String privateSpace = context.getUser().getUserName();
+    return getVersionDao(context).list(context, privateSpace, itemId);
   }
 
   @Override
-  public ItemVersion getItemVersion(SessionContext sessionContext, String s, String s1) {
-    return null;
+  public boolean isItemVersionExist(SessionContext context, Id itemId, Id versionId) {
+    return false;
   }
 
   @Override
-  public void createItemVersion(SessionContext context, String itemId, String baseVersionId,
-                                String versionId, Info versionInfo) {
+  public ItemVersion getItemVersion(SessionContext context, Id itemId, Id versionId) {
+    String privateSpace = context.getUser().getUserName();
+    return getOptionalItemVersion(context, privateSpace, itemId, versionId)
+        .orElseThrow(() -> new RuntimeException(
+            String.format(StateStoreMessages.ITEM_VERSION_NOT_EXIST,
+                itemId, versionId, privateSpace)));
+  }
+
+  @Override
+  public void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
+                                Id versionId, Info versionInfo) {
     String privateSpace = context.getUser().getUserName();
     getVersionDao(context)
         .create(context, privateSpace, itemId, versionId, baseVersionId, versionInfo);
@@ -93,7 +112,7 @@ public class CassandraStateStore implements StateStore {
   }
 
   @Override
-  public void publishItemVersion(SessionContext context, String itemId, String versionId) {
+  public void publishItemVersion(SessionContext context, Id itemId, Id versionId) {
     String privateSpace = context.getUser().getUserName();
 
     copyVersionInfo(context, privateSpace, PUBLIC_SPACE, itemId, versionId);
@@ -102,45 +121,62 @@ public class CassandraStateStore implements StateStore {
   }
 
   @Override
-  public void syncItemVersion(SessionContext context, String itemId, String versionId) {
+  public void syncItemVersion(SessionContext context, Id itemId, Id versionId) {
 
   }
 
   @Override
-  public void createItemVersionEntity(SessionContext context, String itemId, String versionId,
-                                      URI namespace, String entityId, EntityInfo entityInfo) {
+  public ElementNamespace getElementNamespace(SessionContext sessionContext,
+                                              ElementContext elementContext, Id elementId) {
+    return null;
+  }
+
+  @Override
+  public boolean isElementExist(SessionContext sessionContext, ElementContext elementContext,
+                                Id elementId) {
+    return false;
+  }
+
+  @Override
+  public ElementInfo getElement(SessionContext sessionContext, ElementContext elementContext,
+                                Id elementId) {
+    return null;
+  }
+
+  @Override
+  public void createElement(SessionContext context, ElementContext elementContext,
+                            ElementNamespace namespace, ElementInfo elementInfo) {
     String privateSpace = context.getUser().getUserName();
-    getEntityDao(context).create(context, privateSpace, itemId, versionId, namespace, entityId,
-        entityInfo.getInfo());
+    getElementDao(context).create(context, privateSpace, itemId, versionId, namespace, elementId,
+        elementInfo.getInfo());
   }
 
   @Override
-  public void saveItemVersionEntity(SessionContext context, String itemId, String versionId,
-                                    URI namespace, String entityId, EntityInfo entityInfo) {
+  public void saveElement(SessionContext context, ElementContext elementContext,
+                          ElementInfo elementInfo) {
     String privateSpace = context.getUser().getUserName();
-    getEntityDao(context).save(context, privateSpace, itemId, versionId, namespace, entityId,
-        entityInfo.getInfo());
+    getElementDao(context).save(context, privateSpace, itemId, versionId, namespace, elementId,
+        elementInfo.getInfo());
   }
 
   @Override
-  public void deleteItemVersionEntity(SessionContext context, String itemId, String versionId,
-                                      URI namespace, String entityId) {
+  public void deleteElement(SessionContext context, ElementContext elementContext, Id elementId) {
     String privateSpace = context.getUser().getUserName();
-    getEntityDao(context).delete(context, privateSpace, itemId, versionId, namespace, entityId);
+    getElementDao(context).delete(context, privateSpace, itemId, versionId, namespace, elementId);
   }
 
   @Override
-  public void createWorkspace(SessionContext context, String workspaceId, Info workspaceInfo) {
-
-  }
-
-  @Override
-  public void saveWorkspace(SessionContext context, String workspaceId, Info workspaceInfo) {
+  public void createWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
 
   }
 
   @Override
-  public void deleteWorkspace(SessionContext context, String workspaceId) {
+  public void saveWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
+
+  }
+
+  @Override
+  public void deleteWorkspace(SessionContext context, Id workspaceId) {
 
   }
 
@@ -149,8 +185,8 @@ public class CassandraStateStore implements StateStore {
     return null;
   }
 
-  private void copyRelationsFromBaseVersion(SessionContext context, String space, String itemId,
-                                            String baseVersionId, String versionId) {
+  private void copyRelationsFromBaseVersion(SessionContext context, String space, Id itemId,
+                                            Id baseVersionId, Id versionId) {
     RelationDao relationDao = getRelationDao(context);
 
     Map<String, Relation> baseVersionRelations =
@@ -166,19 +202,30 @@ public class CassandraStateStore implements StateStore {
   }
 
   private void copyVersionInfo(SessionContext context, String sourceSpace, String targetSpace,
-                               String itemId, String versionId) {
-    Info versionInfo = getVersionDao(context).get(context, sourceSpace, itemId, versionId);
-    getVersionDao(context).save(context, targetSpace, itemId, versionId, versionInfo);
+                               Id itemId, Id versionId) {
+/*    Optional<ItemVersion> itemVersion =
+        getOptionalItemVersion(context, sourceSpace, itemId, versionId);
+    getVersionDao(context).save(context, targetSpace, itemId, versionId, versionInfo);*/
   }
 
   private void copyVersionEntities(SessionContext context, String sourceSpace, String targetSpace,
-                                   String itemId, String versionId) {
+                                   Id itemId, Id versionId) {
     // TODO: 12/14/2016
   }
 
   private void copyVersionRelations(SessionContext context, String sourceSpace, String targetSpace,
-                                    String itemId, String versionId) {
+                                    Id itemId, Id versionId) {
     // TODO: 12/14/2016
+  }
+
+
+  private Optional<Item> getOptionalItem(SessionContext context, Id itemId) {
+    return getItemDao(context).get(context, itemId);
+  }
+
+  private Optional<ItemVersion> getOptionalItemVersion(SessionContext context, String space,
+                                                       Id itemId, Id versionId) {
+    return getVersionDao(context).get(context, space, itemId, versionId);
   }
 
   private ItemDao getItemDao(SessionContext context) {
@@ -189,8 +236,8 @@ public class CassandraStateStore implements StateStore {
     return VersionDaoFactory.getInstance().createInterface(context);
   }
 
-  private EntityDao getEntityDao(SessionContext context) {
-    return EntityDaoFactory.getInstance().createInterface(context);
+  private ElementDao getElementDao(SessionContext context) {
+    return ElementDaoFactory.getInstance().createInterface(context);
   }
 
   private RelationDao getRelationDao(SessionContext context) {
