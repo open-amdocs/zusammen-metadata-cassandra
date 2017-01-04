@@ -1,8 +1,8 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao;
 
 
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.item.Info;
 
 public interface VersionDao {
   void create(SessionContext context, String space, String itemId, String versionId, String baseVersionId,

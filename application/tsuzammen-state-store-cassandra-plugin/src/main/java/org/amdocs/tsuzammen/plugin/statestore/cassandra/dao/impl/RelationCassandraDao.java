@@ -6,8 +6,8 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.Relation;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.item.Relation;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.RelationDao;
 import org.amdocs.tsuzammen.utils.fileutils.json.JsonUtil;
 

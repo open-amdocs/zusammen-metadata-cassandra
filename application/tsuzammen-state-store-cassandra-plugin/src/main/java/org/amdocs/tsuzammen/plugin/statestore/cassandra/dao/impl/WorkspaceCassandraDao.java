@@ -5,9 +5,9 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
 
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
-import org.amdocs.tsuzammen.commons.datatypes.workspace.WorkspaceInfo;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.workspace.WorkspaceInfo;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.WorkspaceDao;
 import org.amdocs.tsuzammen.utils.fileutils.json.JsonUtil;
 

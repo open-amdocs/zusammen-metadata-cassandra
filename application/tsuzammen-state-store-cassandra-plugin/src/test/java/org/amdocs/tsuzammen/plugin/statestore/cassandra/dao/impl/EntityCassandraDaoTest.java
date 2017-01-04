@@ -1,8 +1,8 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl;
 
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.UserInfo;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.UserInfo;
+import org.amdocs.tsuzammen.datatypes.item.Info;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.TestUtils;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.EntityDao;
 import org.testng.annotations.Test;

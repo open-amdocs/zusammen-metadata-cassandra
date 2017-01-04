@@ -1,9 +1,9 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao;
 
 
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
-import org.amdocs.tsuzammen.commons.datatypes.workspace.WorkspaceInfo;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.workspace.WorkspaceInfo;
 
 import java.util.List;
 

@@ -17,13 +17,17 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
 
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.impl.item.EntityInfo;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
-import org.amdocs.tsuzammen.commons.datatypes.item.Item;
-import org.amdocs.tsuzammen.commons.datatypes.item.ItemVersion;
-import org.amdocs.tsuzammen.commons.datatypes.item.Relation;
-import org.amdocs.tsuzammen.commons.datatypes.workspace.WorkspaceInfo;
+import org.amdocs.tsuzammen.datatypes.Id;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+
+import org.amdocs.tsuzammen.datatypes.item.ElementContext;
+import org.amdocs.tsuzammen.datatypes.item.ElementInfo;
+import org.amdocs.tsuzammen.datatypes.item.ElementNamespace;
+import org.amdocs.tsuzammen.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.item.Item;
+import org.amdocs.tsuzammen.datatypes.item.ItemVersion;
+import org.amdocs.tsuzammen.datatypes.item.Relation;
+import org.amdocs.tsuzammen.datatypes.workspace.WorkspaceInfo;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.EntityDao;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.EntityDaoFactory;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDao;
@@ -49,98 +53,143 @@ public class CassandraStateStore implements StateStore {
   }
 
   @Override
-  public Item getItem(SessionContext context, String itemId) {
-    return getItemDao(context).get(context, itemId).get();
+  public boolean isItemExist(SessionContext sessionContext, Id id) {
+    return false;
   }
 
   @Override
-  public void createItem(SessionContext context, String itemId, Info itemInfo) {
-    getItemDao(context).create(context, itemId, itemInfo);
+  public Item getItem(SessionContext context,Id itemId) {
+    return getItemDao(context).get(context, itemId.getValue().toString()).get();
   }
 
   @Override
-  public void saveItem(SessionContext context, String itemId, Info itemInfo) {
-    getItemDao(context).save(context, itemId, itemInfo);
+  public void createItem(SessionContext context, Id itemId, Info itemInfo) {
+    getItemDao(context).create(context, itemId.getValue().toString(), itemInfo);
   }
 
   @Override
-  public void deleteItem(SessionContext context, String itemId) {
-    getItemDao(context).delete(context, itemId);
+  public void saveItem(SessionContext context, Id itemId, Info itemInfo) {
+    getItemDao(context).save(context, itemId.getValue().toString(), itemInfo);
   }
 
   @Override
-  public Collection<ItemVersion> listItemVersions(SessionContext sessionContext, String s) {
+  public void deleteItem(SessionContext context, Id itemId) {
+    getItemDao(context).delete(context, itemId.getValue().toString());
+  }
+
+  @Override
+  public Collection<ItemVersion> listItemVersions(SessionContext sessionContext, Id itemId) {
     return null;
   }
 
   @Override
-  public ItemVersion getItemVersion(SessionContext sessionContext, String s, String s1) {
+  public boolean isItemVersionExist(SessionContext sessionContext, Id id, Id id1) {
+    return false;
+  }
+
+  @Override
+  public ItemVersion getItemVersion(SessionContext sessionContext, Id itemId, Id versionId) {
     return null;
   }
 
   @Override
-  public void createItemVersion(SessionContext context, String itemId, String baseVersionId,
-                                String versionId, Info versionInfo) {
+  public void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
+                                Id versionId, Info versionInfo) {
     String privateSpace = context.getUser().getUserName();
     getVersionDao(context)
-        .create(context, privateSpace, itemId, versionId, baseVersionId, versionInfo);
+        .create(context, privateSpace, itemId.getValue().toString(), versionId.getValue().toString(), baseVersionId.getValue().toString(), versionInfo);
 
     if (baseVersionId == null) {
       return;
     }
 
-    copyRelationsFromBaseVersion(context, privateSpace, itemId, baseVersionId, versionId);
+    copyRelationsFromBaseVersion(context, privateSpace, itemId.getValue().toString(), baseVersionId.getValue().toString(), versionId.getValue().toString());
   }
 
   @Override
-  public void publishItemVersion(SessionContext context, String itemId, String versionId) {
+  public void publishItemVersion(SessionContext context, Id itemId, Id versionId) {
     String privateSpace = context.getUser().getUserName();
 
-    copyVersionInfo(context, privateSpace, PUBLIC_SPACE, itemId, versionId);
-    copyVersionEntities(context, privateSpace, PUBLIC_SPACE, itemId, versionId);
-    copyVersionRelations(context, privateSpace, PUBLIC_SPACE, itemId, versionId);
+    copyVersionInfo(context, privateSpace, PUBLIC_SPACE, itemId.getValue().toString(), versionId.getValue().toString());
+    copyVersionEntities(context, privateSpace, PUBLIC_SPACE, itemId.getValue().toString(), versionId.getValue().toString());
+    copyVersionRelations(context, privateSpace, PUBLIC_SPACE, itemId.getValue().toString(), versionId.getValue().toString());
   }
 
   @Override
-  public void syncItemVersion(SessionContext context, String itemId, String versionId) {
+  public void syncItemVersion(SessionContext context, Id itemId, Id versionId) {
 
   }
 
   @Override
-  public void createItemVersionEntity(SessionContext context, String itemId, String versionId,
+  public ElementNamespace getElementNamespace(SessionContext sessionContext,
+                                              ElementContext elementContext, Id id) {
+    return null;
+  }
+
+  @Override
+  public boolean isElementExist(SessionContext sessionContext, ElementContext elementContext,
+                                Id id) {
+    return false;
+  }
+
+  @Override
+  public ElementInfo getElement(SessionContext sessionContext, ElementContext elementContext,
+                                Id id) {
+    return null;
+  }
+
+  @Override
+  public void createElement(SessionContext sessionContext, ElementContext elementContext,
+                            ElementNamespace elementNamespace, ElementInfo elementInfo) {
+
+  }
+
+  @Override
+  public void saveElement(SessionContext sessionContext, ElementContext elementContext,
+                          ElementInfo elementInfo) {
+
+  }
+
+  @Override
+  public void deleteElement(SessionContext sessionContext, ElementContext elementContext, Id id) {
+
+  }
+
+  /*@Override
+  public void createItemVersionEntity(SessionContext context, Id itemId, Id versionId,
                                       URI namespace, String entityId, EntityInfo entityInfo) {
     String privateSpace = context.getUser().getUserName();
     getEntityDao(context).create(context, privateSpace, itemId, versionId, namespace, entityId,
         entityInfo.getInfo());
-  }
+  }*/
 
-  @Override
+  /*@Override
   public void saveItemVersionEntity(SessionContext context, String itemId, String versionId,
                                     URI namespace, String entityId, EntityInfo entityInfo) {
     String privateSpace = context.getUser().getUserName();
     getEntityDao(context).save(context, privateSpace, itemId, versionId, namespace, entityId,
         entityInfo.getInfo());
-  }
+  }*/
 
-  @Override
+  /*@Override
   public void deleteItemVersionEntity(SessionContext context, String itemId, String versionId,
                                       URI namespace, String entityId) {
     String privateSpace = context.getUser().getUserName();
     getEntityDao(context).delete(context, privateSpace, itemId, versionId, namespace, entityId);
-  }
+  }*/
 
   @Override
-  public void createWorkspace(SessionContext context, String workspaceId, Info workspaceInfo) {
-
-  }
-
-  @Override
-  public void saveWorkspace(SessionContext context, String workspaceId, Info workspaceInfo) {
+  public void createWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
 
   }
 
   @Override
-  public void deleteWorkspace(SessionContext context, String workspaceId) {
+  public void saveWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
+
+  }
+
+  @Override
+  public void deleteWorkspace(SessionContext context, Id workspaceId) {
 
   }
 

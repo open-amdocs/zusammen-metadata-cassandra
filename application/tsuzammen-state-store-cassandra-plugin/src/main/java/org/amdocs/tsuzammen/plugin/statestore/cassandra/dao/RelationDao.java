@@ -17,8 +17,8 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao;
 
 
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.Relation;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.item.Relation;
 
 import java.util.Map;
 
