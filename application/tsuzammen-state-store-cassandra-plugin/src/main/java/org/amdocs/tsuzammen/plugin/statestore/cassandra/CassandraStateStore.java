@@ -54,7 +54,7 @@ public class CassandraStateStore implements StateStore {
 
   @Override
   public boolean isItemExist(SessionContext sessionContext, Id id) {
-    return false;
+    return true;
   }
 
   @Override
@@ -84,7 +84,7 @@ public class CassandraStateStore implements StateStore {
 
   @Override
   public boolean isItemVersionExist(SessionContext sessionContext, Id id, Id id1) {
-    return false;
+    return true;
   }
 
   @Override
@@ -96,8 +96,10 @@ public class CassandraStateStore implements StateStore {
   public void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
                                 Id versionId, Info versionInfo) {
     String privateSpace = context.getUser().getUserName();
+    String baseVersion = baseVersionId!=null?baseVersionId.getValue().toString():null;
     getVersionDao(context)
-        .create(context, privateSpace, itemId.getValue().toString(), versionId.getValue().toString(), baseVersionId.getValue().toString(), versionInfo);
+        .create(context, privateSpace, itemId.getValue().toString(), versionId.getValue()
+            .toString(), baseVersion, versionInfo);
 
     if (baseVersionId == null) {
       return;
@@ -129,7 +131,7 @@ public class CassandraStateStore implements StateStore {
   @Override
   public boolean isElementExist(SessionContext sessionContext, ElementContext elementContext,
                                 Id id) {
-    return false;
+    return true;
   }
 
   @Override
