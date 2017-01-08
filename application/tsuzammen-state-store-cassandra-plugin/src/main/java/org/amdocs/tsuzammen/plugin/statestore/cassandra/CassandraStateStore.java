@@ -38,6 +38,7 @@ import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDaoFactory;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.tsuzammen.sdk.StateStore;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +55,7 @@ public class CassandraStateStore implements StateStore {
 
   @Override
   public boolean isItemExist(SessionContext context, Id itemId) {
-    return false;
+    return true;
   }
 
   @Override
@@ -125,6 +126,154 @@ public class CassandraStateStore implements StateStore {
   public void syncItemVersion(SessionContext context, Id itemId, Id versionId) {
 
   }
+
+  @Override
+  public Namespace getElementNamespace(SessionContext context,
+                                       ElementContext elementContext, Id elementId) {
+    return getElementRepository(context)
+        .get(context, StateStoreUtils.getElementEntity(
+            context.getUser().getUserName(), elementContext, null, elementId))
+        .getNamespace();
+  }
+
+  @Override
+  public boolean isElementExist(SessionContext context, ElementContext elementContext,
+                                Id elementId) {
+    return getElementRepository(context)
+        .get(context, StateStoreUtils.getElementEntity(
+            context.getUser().getUserName(), elementContext, null, elementId)) != null;
+  }
+
+  @Override
+  public ElementInfo getElement(SessionContext context, ElementContext elementContext,
+                                Id elementId, FetchCriteria fetchCriteria) {
+    ElementEntity elementEntity =
+        getElementRepository(context)
+            .get(context, StateStoreUtils.getElementEntity(context.getUser()
+                .getUserName(), elementContext, null, elementId));
+    return StateStoreUtils.getElementInfo(elementEntity);
+  }
+
+
+  @Override
+  public void createElement(SessionContext context, ElementContext elementContext,
+                            Namespace namespace, ElementInfo elementInfo) {
+    getElementRepository(context).create(context,
+        StateStoreUtils.getElementEntity(context.getUser().getUserName(), elementContext,
+            namespace, elementInfo));
+  }
+
+  @Override
+  public void saveElement(SessionContext context, ElementContext elementContext,
+                          ElementInfo elementInfo) {
+    getElementRepository(context).update(context,
+        StateStoreUtils
+            .getElementEntity(context.getUser().getUserName(), elementContext, null, elementInfo));
+  }
+
+  @Override
+  public void deleteElement(SessionContext context, ElementContext elementContext,
+                            ElementInfo elementInfo) {
+    ElementEntity elementEntity = StateStoreUtils
+        .getElementEntity(context.getUser().getUserName(), elementContext, null, elementInfo);
+    deleteElementHierarchy(context, elementContext, elementEntity);
+
+
+  }
+
+  private void deleteElementHierarchy(SessionContext context, ElementContext elementContext,
+                                      ElementEntity elementEntity) {
+    ElementRepository elementRepository = getElementRepository(context);
+
+    Set<Id> subElementIds = elementRepository.get(context, elementEntity).getSubElementIds();
+    subElementIds.stream()
+        .map(subElementId -> StateStoreUtils
+            .getElementEntity(context.getUser().getUserName(), elementContext, null, subElementId))
+        .forEach(subElementEntity ->
+            deleteElementHierarchy(context, elementContext, subElementEntity));
+
+    elementRepository.delete(context, elementEntity);
+  }
+
+  @Override
+  public void createWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
+
+  }
+
+  @Override
+  public void saveWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
+
+  }
+
+  @Override
+  public void deleteWorkspace(SessionContext context, Id workspaceId) {
+
+  }
+
+  @Override
+  public List<WorkspaceInfo> listWorkspaces(SessionContext context) {
+    return null;
+  }
+
+  private void copyRelationsFromBaseVersion(SessionContext context, String space, Id itemId,
+                                            Id baseVersionId, Id versionId) {
+    RelationDao relationDao = getRelationDao(context);
+
+/*    Map<String, Relation> baseVersionRelations =
+        relationDao.list(context, space, itemId, baseVersionId,
+            StateStoreConstants.VERSION_PARENT_ENTITY_ID,
+            StateStoreConstants.VERSION_PARENT_CONTENT_NAME,
+            StateStoreConstants.VERSION_ENTITY_ID);
+
+    relationDao.update(context, space, itemId, versionId,
+        StateStoreConstants.VERSION_PARENT_ENTITY_ID,
+        StateStoreConstants.VERSION_PARENT_CONTENT_NAME,
+        StateStoreConstants.VERSION_ENTITY_ID, baseVersionRelations);*/
+  }
+
+  private void copyVersionInfo(SessionContext context, String sourceSpace, String targetSpace,
+                               Id itemId, Id versionId) {
+/*    Optional<ItemVersion> itemVersion =
+        getOptionalItemVersion(context, sourceSpace, itemId, versionId);
+    getVersionDao(context).update(context, targetSpace, itemId, versionId, versionInfo);*/
+  }
+
+  private void copyVersionEntities(SessionContext context, String sourceSpace, String targetSpace,
+                                   Id itemId, Id versionId) {
+    // TODO: 12/14/2016
+  }
+
+  private void copyVersionRelations(SessionContext context, String sourceSpace, String targetSpace,
+                                    Id itemId, Id versionId) {
+    // TODO: 12/14/2016
+  }
+
+  private Optional<Item> getOptionalItem(SessionContext context, Id itemId) {
+    return getItemDao(context).get(context, itemId);
+  }
+
+
+  private Optional<ItemVersion> getOptionalItemVersion(SessionContext context, String space,
+                                                       Id itemId, Id versionId) {
+    return getVersionDao(context).get(context, space, itemId, versionId);
+  }
+
+  private ItemDao getItemDao(SessionContext context) {
+    return ItemDaoFactory.getInstance().createInterface(context);
+  }
+
+  private VersionDao getVersionDao(SessionContext context) {
+    return VersionDaoFactory.getInstance().createInterface(context);
+  }
+
+  private ElementRepository getElementRepository(SessionContext context) {
+    return ElementInfoRepositoryFactory.getInstance().createInterface(context);
+  }
+
+  private RelationDao getRelationDao(SessionContext context) {
+    return RelationDaoFactory.getInstance().createInterface(context);
+  }
+}
 
   @Override
   public Namespace getElementNamespace(SessionContext context,
