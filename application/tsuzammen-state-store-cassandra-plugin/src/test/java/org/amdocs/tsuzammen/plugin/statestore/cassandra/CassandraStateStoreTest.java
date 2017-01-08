@@ -1,9 +1,10 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
 
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.UserInfo;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.Id;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.UserInfo;
+import org.amdocs.tsuzammen.datatypes.item.Info;
 import org.testng.annotations.Test;
 
 public class CassandraStateStoreTest {
@@ -16,7 +17,7 @@ public class CassandraStateStoreTest {
 
     CassandraStateStore stateStore = new CassandraStateStore();
     SessionContext context = TestUtils.createSessionContext(new UserInfo("testUser"), "test");
-    stateStore.createItem(context, "itemId", itemInfo);
+    stateStore.createItem(context, new Id(), itemInfo);
   }
 
   @Test
@@ -28,6 +29,6 @@ public class CassandraStateStoreTest {
     CassandraStateStore stateStore = new CassandraStateStore();
     SessionContext context = TestUtils.createSessionContext(new UserInfo("testUser"), "test");
     stateStore
-        .createItemVersion(context, "itemId", "baseVersionId", "versionId", versionInfo);
+        .createItemVersion(context, new Id(), new Id(), new Id(), versionInfo);
   }
 }

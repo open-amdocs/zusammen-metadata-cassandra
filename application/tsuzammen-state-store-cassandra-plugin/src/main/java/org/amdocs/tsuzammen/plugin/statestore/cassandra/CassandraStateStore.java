@@ -17,30 +17,31 @@
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
 
-import org.amdocs.tsuzammen.commons.datatypes.Id;
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.impl.item.ElementInfo;
-import org.amdocs.tsuzammen.commons.datatypes.item.ElementContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.ElementNamespace;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
-import org.amdocs.tsuzammen.commons.datatypes.item.Item;
-import org.amdocs.tsuzammen.commons.datatypes.item.ItemVersion;
-import org.amdocs.tsuzammen.commons.datatypes.item.Relation;
-import org.amdocs.tsuzammen.commons.datatypes.workspace.WorkspaceInfo;
-import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementDao;
-import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementDaoFactory;
+import org.amdocs.tsuzammen.datatypes.FetchCriteria;
+import org.amdocs.tsuzammen.datatypes.Id;
+import org.amdocs.tsuzammen.datatypes.Namespace;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.item.ElementContext;
+import org.amdocs.tsuzammen.datatypes.item.ElementInfo;
+import org.amdocs.tsuzammen.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.item.Item;
+import org.amdocs.tsuzammen.datatypes.item.ItemVersion;
+import org.amdocs.tsuzammen.datatypes.workspace.WorkspaceInfo;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementInfoRepositoryFactory;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementRepository;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDao;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDaoFactory;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.RelationDao;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.RelationDaoFactory;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDao;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDaoFactory;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.tsuzammen.sdk.StateStore;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class CassandraStateStore implements StateStore {
 
@@ -85,7 +86,7 @@ public class CassandraStateStore implements StateStore {
 
   @Override
   public boolean isItemVersionExist(SessionContext context, Id itemId, Id versionId) {
-    return false;
+    return true;
   }
 
   @Override
@@ -126,43 +127,71 @@ public class CassandraStateStore implements StateStore {
   }
 
   @Override
-  public ElementNamespace getElementNamespace(SessionContext sessionContext,
-                                              ElementContext elementContext, Id elementId) {
-    return null;
+  public Namespace getElementNamespace(SessionContext context,
+                                       ElementContext elementContext, Id elementId) {
+    return getElementRepository(context)
+        .get(context, StateStoreUtils.getElementEntity(
+            context.getUser().getUserName(), elementContext, null, elementId))
+        .getNamespace();
   }
 
   @Override
-  public boolean isElementExist(SessionContext sessionContext, ElementContext elementContext,
+  public boolean isElementExist(SessionContext context, ElementContext elementContext,
                                 Id elementId) {
-    return false;
+    return getElementRepository(context)
+        .get(context, StateStoreUtils.getElementEntity(
+            context.getUser().getUserName(), elementContext, null, elementId)) != null;
   }
 
   @Override
-  public ElementInfo getElement(SessionContext sessionContext, ElementContext elementContext,
-                                Id elementId) {
-    return null;
+  public ElementInfo getElement(SessionContext context, ElementContext elementContext,
+                                Id elementId, FetchCriteria fetchCriteria) {
+    ElementEntity elementEntity =
+        getElementRepository(context)
+            .get(context, StateStoreUtils.getElementEntity(context.getUser()
+                .getUserName(), elementContext, null, elementId));
+    return StateStoreUtils.getElementInfo(elementEntity);
   }
+
 
   @Override
   public void createElement(SessionContext context, ElementContext elementContext,
-                            ElementNamespace namespace, ElementInfo elementInfo) {
-    String privateSpace = context.getUser().getUserName();
-    getElementDao(context).create(context, privateSpace, itemId, versionId, namespace, elementId,
-        elementInfo.getInfo());
+                            Namespace namespace, ElementInfo elementInfo) {
+    getElementRepository(context).create(context,
+        StateStoreUtils.getElementEntity(context.getUser().getUserName(), elementContext,
+            namespace, elementInfo));
   }
 
   @Override
   public void saveElement(SessionContext context, ElementContext elementContext,
                           ElementInfo elementInfo) {
-    String privateSpace = context.getUser().getUserName();
-    getElementDao(context).save(context, privateSpace, itemId, versionId, namespace, elementId,
-        elementInfo.getInfo());
+    getElementRepository(context).update(context,
+        StateStoreUtils
+            .getElementEntity(context.getUser().getUserName(), elementContext, null, elementInfo));
   }
 
   @Override
-  public void deleteElement(SessionContext context, ElementContext elementContext, Id elementId) {
-    String privateSpace = context.getUser().getUserName();
-    getElementDao(context).delete(context, privateSpace, itemId, versionId, namespace, elementId);
+  public void deleteElement(SessionContext context, ElementContext elementContext,
+                            ElementInfo elementInfo) {
+    ElementEntity elementEntity = StateStoreUtils
+        .getElementEntity(context.getUser().getUserName(), elementContext, null, elementInfo);
+    deleteElementHierarchy(context, elementContext, elementEntity);
+
+
+  }
+
+  private void deleteElementHierarchy(SessionContext context, ElementContext elementContext,
+                                      ElementEntity elementEntity) {
+    ElementRepository elementRepository = getElementRepository(context);
+
+    Set<Id> subElementIds = elementRepository.get(context, elementEntity).getSubElementIds();
+    subElementIds.stream()
+        .map(subElementId -> StateStoreUtils
+            .getElementEntity(context.getUser().getUserName(), elementContext, null, subElementId))
+        .forEach(subElementEntity ->
+            deleteElementHierarchy(context, elementContext, subElementEntity));
+
+    elementRepository.delete(context, elementEntity);
   }
 
   @Override
@@ -189,23 +218,23 @@ public class CassandraStateStore implements StateStore {
                                             Id baseVersionId, Id versionId) {
     RelationDao relationDao = getRelationDao(context);
 
-    Map<String, Relation> baseVersionRelations =
+/*    Map<String, Relation> baseVersionRelations =
         relationDao.list(context, space, itemId, baseVersionId,
             StateStoreConstants.VERSION_PARENT_ENTITY_ID,
             StateStoreConstants.VERSION_PARENT_CONTENT_NAME,
             StateStoreConstants.VERSION_ENTITY_ID);
 
-    relationDao.save(context, space, itemId, versionId,
+    relationDao.update(context, space, itemId, versionId,
         StateStoreConstants.VERSION_PARENT_ENTITY_ID,
         StateStoreConstants.VERSION_PARENT_CONTENT_NAME,
-        StateStoreConstants.VERSION_ENTITY_ID, baseVersionRelations);
+        StateStoreConstants.VERSION_ENTITY_ID, baseVersionRelations);*/
   }
 
   private void copyVersionInfo(SessionContext context, String sourceSpace, String targetSpace,
                                Id itemId, Id versionId) {
 /*    Optional<ItemVersion> itemVersion =
         getOptionalItemVersion(context, sourceSpace, itemId, versionId);
-    getVersionDao(context).save(context, targetSpace, itemId, versionId, versionInfo);*/
+    getVersionDao(context).update(context, targetSpace, itemId, versionId, versionInfo);*/
   }
 
   private void copyVersionEntities(SessionContext context, String sourceSpace, String targetSpace,
@@ -218,10 +247,10 @@ public class CassandraStateStore implements StateStore {
     // TODO: 12/14/2016
   }
 
-
   private Optional<Item> getOptionalItem(SessionContext context, Id itemId) {
     return getItemDao(context).get(context, itemId);
   }
+
 
   private Optional<ItemVersion> getOptionalItemVersion(SessionContext context, String space,
                                                        Id itemId, Id versionId) {
@@ -236,8 +265,8 @@ public class CassandraStateStore implements StateStore {
     return VersionDaoFactory.getInstance().createInterface(context);
   }
 
-  private ElementDao getElementDao(SessionContext context) {
-    return ElementDaoFactory.getInstance().createInterface(context);
+  private ElementRepository getElementRepository(SessionContext context) {
+    return ElementInfoRepositoryFactory.getInstance().createInterface(context);
   }
 
   private RelationDao getRelationDao(SessionContext context) {

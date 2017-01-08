@@ -4,10 +4,10 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
-import org.amdocs.tsuzammen.commons.datatypes.Id;
-import org.amdocs.tsuzammen.commons.datatypes.SessionContext;
-import org.amdocs.tsuzammen.commons.datatypes.item.Info;
-import org.amdocs.tsuzammen.commons.datatypes.item.ItemVersion;
+import org.amdocs.tsuzammen.datatypes.Id;
+import org.amdocs.tsuzammen.datatypes.SessionContext;
+import org.amdocs.tsuzammen.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.item.ItemVersion;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.VersionDao;
 import org.amdocs.tsuzammen.utils.fileutils.json.JsonUtil;
 
@@ -21,20 +21,23 @@ public class VersionCassandraDao implements VersionDao {
 
   @Override
   public void create(SessionContext context, String space, Id itemId, Id versionId,
-                     String baseVersionId, Info versionInfo) {
-    getAccessor(context).create(space, itemId, versionId, baseVersionId,
-        JsonUtil.object2Json(versionInfo));
+                     Id baseVersionId,
+                     Info versionInfo) {
+    getAccessor(context)
+        .create(space, itemId.toString(), versionId.toString(), baseVersionId.toString(),
+            JsonUtil.object2Json(versionInfo));
   }
 
   @Override
-  public void save(SessionContext context, String space, Id itemId, Id versionId,
-                   Info versionInfo) {
-    getAccessor(context).save(JsonUtil.object2Json(versionInfo), space, itemId, versionId);
+  public void update(SessionContext context, String space, Id itemId, Id versionId,
+                     Info versionInfo) {
+    getAccessor(context).update(JsonUtil.object2Json(versionInfo), space, itemId.toString(),
+        versionId.toString());
   }
 
   @Override
   public void delete(SessionContext context, String space, Id itemId, Id versionId) {
-    getAccessor(context).delete(space, itemId, versionId);
+    getAccessor(context).delete(space, itemId.toString(), versionId.toString());
   }
 
   @Override
@@ -47,7 +50,7 @@ public class VersionCassandraDao implements VersionDao {
   @Override
   public Optional<ItemVersion> get(SessionContext context, String space, Id itemId,
                                    Id versionId) {
-    Row row = getAccessor(context).get(space, itemId, versionId).one();
+    Row row = getAccessor(context).get(space, itemId.toString(), versionId.toString()).one();
     return row == null ? Optional.empty() : Optional.of(createItemVersion(row));
   }
 
@@ -72,7 +75,7 @@ public class VersionCassandraDao implements VersionDao {
                 String versionInfo);
 
     @Query("UPDATE version SET version_info=? WHERE space=? AND item_id=? AND version_id=?")
-    void save(String versionInfo, String space, String itemId, String versionId);
+    void update(String versionInfo, String space, String itemId, String versionId);
 
     @Query("DELETE FROM version WHERE space=? AND item_id=? AND version_id=?")
     void delete(String space, String itemId, String versionId);
