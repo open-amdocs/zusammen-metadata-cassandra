@@ -19,111 +19,169 @@ package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.impl;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.mapping.annotations.Accessor;
+import com.datastax.driver.mapping.annotations.Param;
 import com.datastax.driver.mapping.annotations.Query;
+import com.google.gson.reflect.TypeToken;
 import org.amdocs.tsuzammen.datatypes.Id;
 import org.amdocs.tsuzammen.datatypes.Namespace;
 import org.amdocs.tsuzammen.datatypes.SessionContext;
 import org.amdocs.tsuzammen.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.item.Relation;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementRepository;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 import org.amdocs.tsuzammen.utils.fileutils.json.JsonUtil;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ElementCassandraRepository implements ElementRepository {
 
   @Override
-  public void create(SessionContext context, ElementEntity elementEntity) {
-    createElement(context, elementEntity);
-    addElementToParent(context, elementEntity);
+  public Collection<ElementEntity> list(SessionContext context,
+                                        ElementEntityContext elementContext) {
+    Set<String> elementIds = getElementIds(context, elementContext);
+
+    return elementIds.stream()
+        .map(elementId -> get(context, elementContext, new ElementEntity(new Id(elementId))).get())
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   @Override
-  public void update(SessionContext context, ElementEntity elementEntity) {
-    updateElement(context, elementEntity);
+  public void create(SessionContext context, ElementEntityContext elementContext,
+                     ElementEntity element) {
+    createElement(context, elementContext, element);
+    addElementToParent(context, elementContext, element);
   }
 
   @Override
-  public void delete(SessionContext context, ElementEntity elementEntity) {
-    removeElementFromParent(context, elementEntity);
-    deleteElement(context, elementEntity);
+  public void update(SessionContext context, ElementEntityContext elementContext,
+                     ElementEntity element) {
+    updateElement(context, elementContext, element);
   }
 
   @Override
-  public ElementEntity get(SessionContext context, ElementEntity elementEntity) {
+  public void delete(SessionContext context, ElementEntityContext elementContext,
+                     ElementEntity element) {
+    removeElementFromParent(context, elementContext, element);
+    deleteElement(context, elementContext, element);
+  }
+
+  @Override
+  public Optional<ElementEntity> get(SessionContext context, ElementEntityContext elementContext,
+                                     ElementEntity element) {
     Row row = getElementAccessor(context).get(
-        elementEntity.getSpace(),
-        elementEntity.getItemId().toString(),
-        elementEntity.getVersionId().toString(),
-        elementEntity.getId().toString()).one();
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString(),
+        element.getId().toString()).one();
 
-    return row == null ? null : getElementEntity(elementEntity, row);
+    return row == null ? Optional.empty() : Optional.of(getElementEntity(element, row));
   }
 
   private ElementAccessor getElementAccessor(SessionContext context) {
     return CassandraDaoUtils.getAccessor(context, ElementAccessor.class);
   }
 
-  private VersionEntitiesAccessor getVersionEntitiesAccessor(SessionContext context) {
-    return CassandraDaoUtils.getAccessor(context, VersionEntitiesAccessor.class);
+  private VersionElementsAccessor getVersionElementsAccessor(SessionContext context) {
+    return CassandraDaoUtils.getAccessor(context, VersionElementsAccessor.class);
   }
 
-  private void createElement(SessionContext context, ElementEntity elementEntity) {
+  private void createElement(SessionContext context, ElementEntityContext elementContext,
+                             ElementEntity element) {
+    Set<String> subElementIds =
+        element.getSubElementIds().stream().map(Id::toString).collect(Collectors.toSet());
     getElementAccessor(context).create(
-        elementEntity.getSpace(),
-        elementEntity.getItemId().toString(),
-        elementEntity.getVersionId().toString(),
-        elementEntity.getId().toString(),
-        elementEntity.getNamespace().toString(),
-        JsonUtil.object2Json(elementEntity.getInfo()));
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString(),
+        element.getId().toString(),
+        element.getNamespace().toString(),
+        JsonUtil.object2Json(element.getInfo()),
+        JsonUtil.object2Json(element.getRelations()),
+        subElementIds);
+
+    getVersionElementsAccessor(context).addElements(
+        Collections.singleton(element.getId().toString()),
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString());
   }
 
-  private void updateElement(SessionContext context, ElementEntity elementEntity) {
+  private void updateElement(SessionContext context, ElementEntityContext elementContext,
+                             ElementEntity element) {
     getElementAccessor(context).update(
-        JsonUtil.object2Json(elementEntity.getInfo()),
-        elementEntity.getSpace(),
-        elementEntity.getItemId().toString(),
-        elementEntity.getVersionId().toString(),
-        elementEntity.getId().toString());
+        JsonUtil.object2Json(element.getInfo()),
+        JsonUtil.object2Json(element.getRelations()),
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString(),
+        element.getId().toString());
   }
 
-  private void deleteElement(SessionContext context, ElementEntity elementEntity) {
+  private void deleteElement(SessionContext context, ElementEntityContext elementContext,
+                             ElementEntity element) {
     getElementAccessor(context).delete(
-        elementEntity.getSpace(),
-        elementEntity.getItemId().toString(),
-        elementEntity.getVersionId().toString(),
-        elementEntity.getId().toString());
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString(),
+        element.getId().toString());
+
+    getVersionElementsAccessor(context).removeElements(
+        Collections.singleton(element.getId().toString()),
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString());
   }
 
-  private void addElementToParent(SessionContext context, ElementEntity elementEntity) {
-    if (elementEntity.getParentId() != null) {
-      getElementAccessor(context).addSubElement(
-          elementEntity.getId().toString(),
-          elementEntity.getSpace(),
-          elementEntity.getItemId().toString(),
-          elementEntity.getVersionId().toString(),
-          elementEntity.getParentId().toString());
+  private void addElementToParent(SessionContext context, ElementEntityContext elementContext,
+                                  ElementEntity element) {
+    if (element.getParentId() != null) {
+      getElementAccessor(context).addSubElements(
+          Collections.singleton(element.getId().toString()),
+          elementContext.getSpace(),
+          elementContext.getItemId().toString(),
+          elementContext.getVersionId().toString(),
+          element.getParentId().toString());
     }
   }
 
-  private void removeElementFromParent(SessionContext context, ElementEntity elementEntity) {
-    if (elementEntity.getParentId() != null) {
-      getElementAccessor(context).removeSubElement(
-          elementEntity.getId().toString(),
-          elementEntity.getSpace(),
-          elementEntity.getItemId().toString(),
-          elementEntity.getVersionId().toString(),
-          elementEntity.getParentId().toString());
+  private void removeElementFromParent(SessionContext context, ElementEntityContext elementContext,
+                                       ElementEntity element) {
+    if (element.getParentId() != null) {
+      getElementAccessor(context).removeSubElements(
+          Collections.singleton(element.getId().toString()),
+          elementContext.getSpace(),
+          elementContext.getItemId().toString(),
+          elementContext.getVersionId().toString(),
+          element.getParentId().toString());
     }
   }
 
-  private ElementEntity getElementEntity(ElementEntity elementEntity, Row row) {
-    elementEntity.setNamespace(
+  private ElementEntity getElementEntity(ElementEntity element, Row row) {
+    element.setNamespace(
         JsonUtil.json2Object(row.getString(ElementField.NAMESPACE), Namespace.class));
-    elementEntity.setInfo(JsonUtil.json2Object(row.getString(ElementField.INFO), Info.class));
-    elementEntity.setSubElementIds(row.getSet(ElementField.SUB_ELEMENT_IDS, String.class)
+    element.setInfo(JsonUtil.json2Object(row.getString(ElementField.INFO), Info.class));
+    element.setRelations(JsonUtil.json2Object(
+        row.getString(ElementField.RELATIONS), new TypeToken<ArrayList<Relation>>() {
+        }.getType()));
+    element.setSubElementIds(row.getSet(ElementField.SUB_ELEMENT_IDS, String.class)
         .stream().map(Id::new).collect(Collectors.toSet()));
-    return elementEntity;
+    return element;
+  }
+
+  private Set<String> getElementIds(SessionContext context, ElementEntityContext elementContext) {
+    Row row = getVersionElementsAccessor(context).get(
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString()).one();
+    return row.getSet(VersionElementsField.ELEMENT_IDS, String.class);
   }
 
   /*
@@ -134,54 +192,81 @@ public class ElementCassandraRepository implements ElementRepository {
     element_id text,
     namespace text,
     info text,
+    relations text,
     sub_element_ids set<text>,
     PRIMARY KEY (( space, item_id, version_id, element_id))
   );
    */
   @Accessor
   interface ElementAccessor {
-
-    @Query("INSERT INTO element " +
-        "(space, item_id, version_id, element_id, namespace, info) VALUES (?, ?, ?, ?, ?, ?)")
-    void create(String space, String itemId, String versionId, String elementId,
-                String namespace, String info);
-
     @Query(
-        "UPDATE element SET info=? WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
-    void update(String info, String space, String itemId, String versionId, String elementId);
+        "UPDATE element SET namespace=:ns, info=:info, relations=:rels, " +
+            "sub_element_ids=sub_element_ids+:subs " +
+            "WHERE space=:space AND item_id=:item AND version_id=:ver AND element_id=:id")
+    void create(@Param("space") String space,
+                @Param("item") String itemId,
+                @Param("ver") String versionId,
+                @Param("id") String elementId,
+                @Param("ns") String namespace,
+                @Param("info") String info,
+                @Param("rels") String relations,
+                @Param("subs") Set<String> subElementIds);
+
+    @Query("UPDATE element SET info=?, relations=? " +
+        "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
+    void update(String info, String relations, String space, String itemId, String versionId,
+                String elementId);
 
     @Query("DELETE FROM element WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     void delete(String space, String itemId, String versionId, String elementId);
 
-    @Query("SELECT namespace, info, sub_element_ids FROM element " +
+    @Query("SELECT namespace, info, relations, sub_element_ids FROM element " +
         "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     ResultSet get(String space, String itemId, String versionId, String elementId);
 
-    @Query("UPDATE element SET sub_element_ids=sub_element_ids+{?} " +
+    @Query("UPDATE element SET sub_element_ids=sub_element_ids+? " +
         "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
-    void addSubElement(String subElementId, String space, String itemId, String versionId,
-                       String elementId);
+    void addSubElements(Set<String> subElementIds, String space, String itemId, String versionId,
+                        String elementId);
 
-    @Query("UPDATE element SET sub_element_ids=sub_element_ids-{?} " +
+    @Query("UPDATE element SET sub_element_ids=sub_element_ids-? " +
         "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
-    void removeSubElement(String subElementId, String space, String itemId, String versionId,
-                          String elementId);
+    void removeSubElements(Set<String> subElementIds, String space, String itemId, String versionId,
+                           String elementId);
   }
 
   private static final class ElementField {
-    private static final String INFO = "info";
     private static final String NAMESPACE = "namespace";
+    private static final String INFO = "info";
+    private static final String RELATIONS = "relations";
     private static final String SUB_ELEMENT_IDS = "sub_element_ids";
   }
 
+  /*
+  CREATE TABLE IF NOT EXISTS version_elements (
+    space text,
+    item_id text,
+    version_id text,
+    element_ids set<text>,
+    PRIMARY KEY (( space, item_id, version_id ))
+  );
+   */
   @Accessor
-  interface VersionEntitiesAccessor {
+  interface VersionElementsAccessor {
 
-    @Query(
-        "INSERT INTO version_entities (space, item_id, version_id, element_id) VALUES (?, ?, ?, ?)")
-    void save(String space, String itemId, String versionId, String elementId);
+    @Query("UPDATE version_elements SET element_ids=element_ids+? " +
+        "WHERE space=? AND item_id=? AND version_id=?")
+    void addElements(Set<String> elementIds, String space, String itemId, String versionId);
 
-    @Query("DELETE FROM element WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
-    void delete(String space, String itemId, String versionId, String elementId);
+    @Query("UPDATE version_elements SET element_ids=element_ids-? " +
+        "WHERE space=? AND item_id=? AND version_id=?")
+    void removeElements(Set<String> elementIds, String space, String itemId, String versionId);
+
+    @Query("SELECT element_ids FROM version_elements WHERE space=? AND item_id=? AND version_id=?")
+    ResultSet get(String space, String itemId, String versionId);
+  }
+
+  private static final class VersionElementsField {
+    private static final String ELEMENT_IDS = "element_ids";
   }
 }

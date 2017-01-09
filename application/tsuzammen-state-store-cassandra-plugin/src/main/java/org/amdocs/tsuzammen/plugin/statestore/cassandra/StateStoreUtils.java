@@ -16,39 +16,27 @@
 
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
-import org.amdocs.tsuzammen.datatypes.Id;
 import org.amdocs.tsuzammen.datatypes.Namespace;
-import org.amdocs.tsuzammen.datatypes.item.ElementContext;
 import org.amdocs.tsuzammen.datatypes.item.ElementInfo;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 
 import java.util.stream.Collectors;
 
-public class StateStoreUtils {
+class StateStoreUtils {
 
-  static ElementEntity getElementEntity(String space, ElementContext elementContext,
-                                        Namespace namespace, ElementInfo elementInfo) {
-    ElementEntity elementEntity =
-        getElementEntity(space, elementContext, namespace, elementInfo.getId());
+  static ElementEntity getElementEntity(Namespace namespace, ElementInfo elementInfo) {
+    ElementEntity elementEntity = new ElementEntity(elementInfo.getId());
+    elementEntity.setNamespace(namespace);
     elementEntity.setParentId(elementInfo.getParentId());
     elementEntity.setInfo(elementInfo.getInfo());
-    return elementEntity;
-  }
-
-  static ElementEntity getElementEntity(String space, ElementContext elementContext,
-                                        Namespace namespace, Id elementId) {
-    ElementEntity elementEntity = new ElementEntity();
-    elementEntity.setSpace(space);
-    elementEntity.setItemId(elementContext.getItemId());
-    elementEntity.setVersionId(elementContext.getVersionId());
-    elementEntity.setNamespace(namespace);
-    elementEntity.setId(elementId);
+    elementEntity.setRelations(elementInfo.getRelations());
     return elementEntity;
   }
 
   static ElementInfo getElementInfo(ElementEntity elementEntity) {
     ElementInfo elementInfo = new ElementInfo(elementEntity.getId());
     elementInfo.setInfo(elementEntity.getInfo());
+    elementInfo.setRelations(elementEntity.getRelations());
     elementInfo.setSubElements(elementEntity.getSubElementIds().stream()
         .map(ElementInfo::new)
         .collect(Collectors.toList()));

@@ -2,14 +2,24 @@ package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao;
 
 import org.amdocs.tsuzammen.datatypes.SessionContext;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
+
+import java.util.Collection;
+import java.util.Optional;
 
 public interface ElementRepository {
 
-  void create(SessionContext context, ElementEntity elementEntity);
+  Collection<ElementEntity> list(SessionContext context, ElementEntityContext elementContext);
 
-  void update(SessionContext context, ElementEntity elementEntity);
+  void create(SessionContext context, ElementEntityContext elementContext, ElementEntity element);
 
-  void delete(SessionContext context, ElementEntity elementEntity);
+/*  void create(SessionContext context, ElementEntityContext elementContext,
+              Collection<ElementEntity> elements); //impl using batch*/
 
-  ElementEntity get(SessionContext context, ElementEntity elementEntity);
+  void update(SessionContext context, ElementEntityContext elementContext, ElementEntity element);
+
+  void delete(SessionContext context, ElementEntityContext elementContext, ElementEntity element);
+
+  Optional<ElementEntity> get(SessionContext context, ElementEntityContext elementContext,
+                              ElementEntity element);
 }

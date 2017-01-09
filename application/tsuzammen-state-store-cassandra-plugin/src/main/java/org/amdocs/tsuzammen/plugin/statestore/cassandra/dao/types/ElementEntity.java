@@ -19,42 +19,22 @@ package org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types;
 import org.amdocs.tsuzammen.datatypes.Id;
 import org.amdocs.tsuzammen.datatypes.Namespace;
 import org.amdocs.tsuzammen.datatypes.item.Info;
+import org.amdocs.tsuzammen.datatypes.item.Relation;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 public class ElementEntity {
-  private String space;
-  private Id itemId;
-  private Id versionId;
   private Id id;
   private Id parentId;
   private Namespace namespace;
   private Info info;
+  private Collection<Relation> relations = Collections.emptyList();
   private Set<Id> subElementIds = Collections.emptySet();
 
-  public String getSpace() {
-    return space;
-  }
-
-  public void setSpace(String space) {
-    this.space = space;
-  }
-
-  public Id getItemId() {
-    return itemId;
-  }
-
-  public void setItemId(Id itemId) {
-    this.itemId = itemId;
-  }
-
-  public Id getVersionId() {
-    return versionId;
-  }
-
-  public void setVersionId(Id versionId) {
-    this.versionId = versionId;
+  public ElementEntity(Id id) {
+    this.id = id;
   }
 
   public Id getParentId() {
@@ -87,6 +67,14 @@ public class ElementEntity {
 
   public void setInfo(Info info) {
     this.info = info;
+  }
+
+  public Collection<Relation> getRelations() {
+    return relations;
+  }
+
+  public void setRelations(Collection<Relation> relations) {
+    this.relations = relations;
   }
 
   public Set<Id> getSubElementIds() {
