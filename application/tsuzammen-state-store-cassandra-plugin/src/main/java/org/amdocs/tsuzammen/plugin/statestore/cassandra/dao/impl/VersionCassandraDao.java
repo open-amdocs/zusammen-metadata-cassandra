@@ -23,8 +23,11 @@ public class VersionCassandraDao implements VersionDao {
   public void create(SessionContext context, String space, Id itemId, Id versionId,
                      Id baseVersionId,
                      Info versionInfo) {
+
+    String baseVersion = baseVersionId!=null?baseVersionId.toString():null;
+
     getAccessor(context)
-        .create(space, itemId.toString(), versionId.toString(), baseVersionId.toString(),
+        .create(space, itemId.toString(), versionId.toString(), baseVersion,
             JsonUtil.object2Json(versionInfo));
   }
 
