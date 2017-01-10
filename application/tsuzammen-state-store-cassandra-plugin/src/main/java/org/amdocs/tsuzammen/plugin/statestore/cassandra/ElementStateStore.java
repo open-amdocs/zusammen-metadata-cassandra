@@ -22,14 +22,39 @@ import org.amdocs.tsuzammen.datatypes.Namespace;
 import org.amdocs.tsuzammen.datatypes.SessionContext;
 import org.amdocs.tsuzammen.datatypes.item.ElementContext;
 import org.amdocs.tsuzammen.datatypes.item.ElementInfo;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.DaoConstants;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementRepository;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementRepositoryFactory;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ElementStateStore {
+
+  public Collection<ElementInfo> listElements(SessionContext context, ElementContext elementContext,
+                                              Id elementId) {
+    ElementEntityContext elementEntityContext =
+        new ElementEntityContext(context.getUser().getUserName(), elementContext);
+
+    if (elementId == null) {
+      elementId = DaoConstants.ROOT_ELEMENTS_PARENT_ID;
+    }
+
+    Set<Id> subElementIds =
+        getElementEntity(context, elementEntityContext, new ElementEntity(elementId))
+            .getSubElementIds();
+
+    return subElementIds.stream()
+        .map(subElementId -> getElementRepository(context)
+            .get(context, elementEntityContext, new ElementEntity(subElementId)).get())
+        .filter(Objects::nonNull)
+        .map(StateStoreUtils::getElementInfo)
+        .collect(Collectors.toList());
+  }
 
   public Namespace getElementNamespace(SessionContext context,
                                        ElementContext elementContext, Id elementId) {
@@ -51,7 +76,6 @@ public class ElementStateStore {
         new ElementEntity(elementId)).isPresent();
   }
 
-
   public ElementInfo getElement(SessionContext context, ElementContext elementContext,
                                 Id elementId, FetchCriteria fetchCriteria) {
     return StateStoreUtils.getElementInfo(
@@ -60,24 +84,12 @@ public class ElementStateStore {
             new ElementEntity(elementId)));
   }
 
-  private ElementEntity getElementEntity(SessionContext context,
-                                 ElementEntityContext elementEntityContext,
-                                 ElementEntity elementEntity) {
-    return getElementRepository(context).get(context, elementEntityContext, elementEntity)
-        .orElseThrow(() ->
-            new RuntimeException(String.format(StateStoreMessages.ELEMENT_NOT_EXIST,
-                elementEntityContext.getItemId(), elementEntityContext.getVersionId(),
-                elementEntity, elementEntityContext.getSpace())));
-  }
-
-
   public void createElement(SessionContext context, ElementContext elementContext,
                             Namespace namespace, ElementInfo elementInfo) {
     getElementRepository(context).create(context,
         new ElementEntityContext(context.getUser().getUserName(), elementContext),
         StateStoreUtils.getElementEntity(namespace, elementInfo));
   }
-
 
   public void saveElement(SessionContext context, ElementContext elementContext,
                           ElementInfo elementInfo) {
@@ -87,7 +99,6 @@ public class ElementStateStore {
         StateStoreUtils.getElementEntity(null, elementInfo));
   }
 
-
   public void deleteElement(SessionContext context, ElementContext elementContext,
                             ElementInfo elementInfo) {
     deleteElementHierarchy(getElementRepository(context),
@@ -95,7 +106,6 @@ public class ElementStateStore {
         new ElementEntityContext(context.getUser().getUserName(), elementContext),
         StateStoreUtils.getElementEntity(null, elementInfo));
   }
-
 
   private void deleteElementHierarchy(ElementRepository elementRepository, SessionContext context,
                                       ElementEntityContext elementEntityContext,
@@ -109,6 +119,20 @@ public class ElementStateStore {
 
     // only for the first one the parentId will populated (so it'll be removed from its parent)
     elementRepository.delete(context, elementEntityContext, elementEntity);
+  }
+
+  private ElementEntity getElementEntity(SessionContext context,
+                                         ElementEntityContext elementEntityContext,
+                                         ElementEntity elementEntity) {
+    return getElementRepository(context).get(context, elementEntityContext, elementEntity)
+        .orElseThrow(() -> elementEntity.getId() == DaoConstants.ROOT_ELEMENTS_PARENT_ID
+            ? new RuntimeException(String.format(StateStoreMessages.ELEMENTS_NOT_EXIST,
+            elementEntityContext.getItemId(), elementEntityContext.getVersionId(),
+            elementEntityContext.getSpace()))
+            : new RuntimeException(String.format(StateStoreMessages.ELEMENT_NOT_EXIST,
+                elementEntityContext.getItemId(), elementEntityContext.getVersionId(),
+                elementEntity, elementEntityContext.getSpace()))
+        );
   }
 
   protected ElementRepository getElementRepository(SessionContext context) {

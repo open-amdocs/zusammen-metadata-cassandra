@@ -57,4 +57,32 @@ public class ElementEntityContext {
   public void setVersionId(Id versionId) {
     this.versionId = versionId;
   }
+
+  @Override
+public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ElementEntityContext that = (ElementEntityContext) o;
+
+    if (space != null ? !space.equals(that.space) : that.space != null) {
+      return false;
+    }
+    if (itemId != null ? !itemId.equals(that.itemId) : that.itemId != null) {
+      return false;
+    }
+    return versionId != null ? versionId.equals(that.versionId) : that.versionId == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = space != null ? space.hashCode() : 0;
+    result = 31 * result + (itemId != null ? itemId.hashCode() : 0);
+    result = 31 * result + (versionId != null ? versionId.hashCode() : 0);
+    return result;
+  }
 }

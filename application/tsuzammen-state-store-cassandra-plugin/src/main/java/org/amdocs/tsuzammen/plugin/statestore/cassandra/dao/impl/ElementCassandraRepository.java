@@ -32,9 +32,11 @@ import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 import org.amdocs.tsuzammen.utils.fileutils.json.JsonUtil;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +47,7 @@ public class ElementCassandraRepository implements ElementRepository {
   @Override
   public Collection<ElementEntity> list(SessionContext context,
                                         ElementEntityContext elementContext) {
-    Set<String> elementIds = getElementIds(context, elementContext);
+    Set<String> elementIds = getVersionElementIds(context, elementContext);
 
     return elementIds.stream()
         .map(elementId -> get(context, elementContext, new ElementEntity(new Id(elementId))).get())
@@ -97,6 +99,7 @@ public class ElementCassandraRepository implements ElementRepository {
                              ElementEntity element) {
     Set<String> subElementIds =
         element.getSubElementIds().stream().map(Id::toString).collect(Collectors.toSet());
+
     getElementAccessor(context).create(
         elementContext.getSpace(),
         elementContext.getItemId().toString(),
@@ -142,46 +145,51 @@ public class ElementCassandraRepository implements ElementRepository {
 
   private void addElementToParent(SessionContext context, ElementEntityContext elementContext,
                                   ElementEntity element) {
-    if (element.getParentId() != null) {
-      getElementAccessor(context).addSubElements(
-          Collections.singleton(element.getId().toString()),
-          elementContext.getSpace(),
-          elementContext.getItemId().toString(),
-          elementContext.getVersionId().toString(),
-          element.getParentId().toString());
-    }
+    getElementAccessor(context).addSubElements(
+        Collections.singleton(element.getId().toString()),
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString(),
+        element.getParentId().toString());
   }
 
   private void removeElementFromParent(SessionContext context, ElementEntityContext elementContext,
                                        ElementEntity element) {
-    if (element.getParentId() != null) {
-      getElementAccessor(context).removeSubElements(
-          Collections.singleton(element.getId().toString()),
-          elementContext.getSpace(),
-          elementContext.getItemId().toString(),
-          elementContext.getVersionId().toString(),
-          element.getParentId().toString());
+    if (element.getParentId() == null) {
+      return;
     }
+    getElementAccessor(context).removeSubElements(
+        Collections.singleton(element.getId().toString()),
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        elementContext.getVersionId().toString(),
+        element.getParentId().toString());
   }
 
   private ElementEntity getElementEntity(ElementEntity element, Row row) {
-    element.setNamespace(
-        JsonUtil.json2Object(row.getString(ElementField.NAMESPACE), Namespace.class));
-    element.setInfo(JsonUtil.json2Object(row.getString(ElementField.INFO), Info.class));
-    element.setRelations(JsonUtil.json2Object(
-        row.getString(ElementField.RELATIONS), new TypeToken<ArrayList<Relation>>() {
+    element.setNamespace(json2Object(row.getString(ElementField.NAMESPACE), Namespace.class));
+    element.setInfo(json2Object(row.getString(ElementField.INFO), Info.class));
+    element.setRelations(
+        json2Object(row.getString(ElementField.RELATIONS), new TypeToken<ArrayList<Relation>>() {
         }.getType()));
     element.setSubElementIds(row.getSet(ElementField.SUB_ELEMENT_IDS, String.class)
         .stream().map(Id::new).collect(Collectors.toSet()));
     return element;
   }
 
-  private Set<String> getElementIds(SessionContext context, ElementEntityContext elementContext) {
+  private static <T> T json2Object(String json, Type typeOfT) {
+    return json == null ? null : JsonUtil.json2Object(json, typeOfT);
+  }
+
+  private Set<String> getVersionElementIds(SessionContext context,
+                                           ElementEntityContext elementContext) {
     Row row = getVersionElementsAccessor(context).get(
         elementContext.getSpace(),
         elementContext.getItemId().toString(),
         elementContext.getVersionId().toString()).one();
-    return row.getSet(VersionElementsField.ELEMENT_IDS, String.class);
+    return row == null
+        ? new HashSet<>()
+        : row.getSet(VersionElementsField.ELEMENT_IDS, String.class);
   }
 
   /*

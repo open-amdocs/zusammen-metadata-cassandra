@@ -107,6 +107,12 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
+  public Collection<ElementInfo> listElements(SessionContext context,
+                                              ElementContext elementContext, Id elementId) {
+    return elementStateStore.listElements(context, elementContext, elementId);
+  }
+
+  @Override
   public Namespace getElementNamespace(SessionContext context,
                                        ElementContext elementContext, Id elementId) {
     return elementStateStore.getElementNamespace(context, elementContext, elementId);

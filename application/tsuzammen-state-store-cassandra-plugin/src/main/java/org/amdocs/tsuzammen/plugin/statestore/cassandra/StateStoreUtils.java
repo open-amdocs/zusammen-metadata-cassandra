@@ -18,6 +18,7 @@ package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
 import org.amdocs.tsuzammen.datatypes.Namespace;
 import org.amdocs.tsuzammen.datatypes.item.ElementInfo;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.DaoConstants;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 
 import java.util.stream.Collectors;
@@ -27,7 +28,9 @@ class StateStoreUtils {
   static ElementEntity getElementEntity(Namespace namespace, ElementInfo elementInfo) {
     ElementEntity elementEntity = new ElementEntity(elementInfo.getId());
     elementEntity.setNamespace(namespace);
-    elementEntity.setParentId(elementInfo.getParentId());
+    elementEntity.setParentId(elementInfo.getParentId() == null
+        ? DaoConstants.ROOT_ELEMENTS_PARENT_ID
+        : elementInfo.getParentId());
     elementEntity.setInfo(elementInfo.getInfo());
     elementEntity.setRelations(elementInfo.getRelations());
     return elementEntity;
