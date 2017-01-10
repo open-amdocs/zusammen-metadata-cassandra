@@ -167,7 +167,7 @@ public class ElementCassandraRepository implements ElementRepository {
   }
 
   private ElementEntity getElementEntity(ElementEntity element, Row row) {
-    element.setNamespace(json2Object(row.getString(ElementField.NAMESPACE), Namespace.class));
+    element.setNamespace(getNamespace(row.getString(ElementField.NAMESPACE)));
     element.setInfo(json2Object(row.getString(ElementField.INFO), Info.class));
     element.setRelations(
         json2Object(row.getString(ElementField.RELATIONS), new TypeToken<ArrayList<Relation>>() {
@@ -175,6 +175,14 @@ public class ElementCassandraRepository implements ElementRepository {
     element.setSubElementIds(row.getSet(ElementField.SUB_ELEMENT_IDS, String.class)
         .stream().map(Id::new).collect(Collectors.toSet()));
     return element;
+  }
+
+  private Namespace getNamespace(String namespaceStr) {
+    Namespace namespace = new Namespace();
+    if(namespaceStr != null){
+      namespace.setValue(namespaceStr);
+    }
+    return namespace;
   }
 
   private static <T> T json2Object(String json, Type typeOfT) {
