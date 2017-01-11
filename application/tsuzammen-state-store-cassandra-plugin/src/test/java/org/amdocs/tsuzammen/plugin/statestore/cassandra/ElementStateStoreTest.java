@@ -66,30 +66,6 @@ public class ElementStateStoreTest {
   }
 
   @Test
-  public void testGetElementNamespace() throws Exception {
-    ElementEntity elementEntity = createElementEntity();
-
-    doReturn(Optional.of(elementEntity))
-        .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
-
-    ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
-    Namespace namespace = elementStateStore.getElementNamespace(context, elementContext,
-        elementEntity.getId());
-
-    Assert.assertEquals(namespace, elementEntity.getNamespace());
-  }
-
-  @Test(expectedExceptions = RuntimeException.class,
-      expectedExceptionsMessageRegExp = ELEMENT_NOT_EXIST_ERR)
-  public void testGetNonExistingElementNamespace() throws Exception {
-    doReturn(Optional.empty())
-        .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
-
-    ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
-    elementStateStore.getElementNamespace(context, elementContext, new Id());
-  }
-
-  @Test
   public void testIsElementExist() throws Exception {
     ElementEntity elementEntity = createElementEntity();
 
@@ -147,13 +123,11 @@ public class ElementStateStoreTest {
   @Test
   public void testCreateElement() throws Exception {
     ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
-    ElementInfo elementInfo = new ElementInfo(new Id());
-    elementInfo.setParentId(new Id());
+    ElementInfo elementInfo = new ElementInfo(new Id(), new Id(), new Id(), new Id());
     elementInfo.setInfo(TestUtils.createInfo("elm1"));
     elementInfo.setRelations(Arrays.asList(createRelation("r1"), createRelation("r2")));
 
-    elementStateStore.createElement(context, elementContext, new Namespace
-        (new Namespace(), elementInfo.getId()), elementInfo);
+    elementStateStore.createElement(context, elementInfo);
 
     verify(elementRepositoryMock).create(anyObject(), anyObject(), elementEntityCaptor.capture());
 
@@ -170,13 +144,11 @@ public class ElementStateStoreTest {
     doReturn(Optional.of(elementEntity))
         .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
 
-    ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
-    ElementInfo elementInfo = new ElementInfo(elementEntity.getId());
-    elementInfo.setParentId(new Id());
+    ElementInfo elementInfo = new ElementInfo(new Id(), new Id(), elementEntity.getId(), new Id());
     elementInfo.setInfo(TestUtils.createInfo("elm1 updated"));
     elementInfo.setRelations(Arrays.asList(createRelation("r1"), createRelation("r2")));
 
-    elementStateStore.saveElement(context, elementContext, elementInfo);
+    elementStateStore.saveElement(context, elementInfo);
 
     verify(elementRepositoryMock).update(anyObject(), anyObject(), elementEntityCaptor.capture());
 

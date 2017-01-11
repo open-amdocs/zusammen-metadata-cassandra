@@ -105,6 +105,7 @@ public class ElementCassandraRepository implements ElementRepository {
         elementContext.getItemId().toString(),
         elementContext.getVersionId().toString(),
         element.getId().toString(),
+        element.getParentId().toString(),
         element.getNamespace().toString(),
         JsonUtil.object2Json(element.getInfo()),
         JsonUtil.object2Json(element.getRelations()),
@@ -179,7 +180,7 @@ public class ElementCassandraRepository implements ElementRepository {
 
   private Namespace getNamespace(String namespaceStr) {
     Namespace namespace = new Namespace();
-    if(namespaceStr != null){
+    if (namespaceStr != null) {
       namespace.setValue(namespaceStr);
     }
     return namespace;
@@ -206,23 +207,25 @@ public class ElementCassandraRepository implements ElementRepository {
     item_id text,
     version_id text,
     element_id text,
+    parent_id text,
     namespace text,
     info text,
     relations text,
     sub_element_ids set<text>,
-    PRIMARY KEY (( space, item_id, version_id, element_id))
+    PRIMARY KEY (( space, item_id, version_id, id ))
   );
    */
   @Accessor
   interface ElementAccessor {
     @Query(
-        "UPDATE element SET namespace=:ns, info=:info, relations=:rels, " +
+        "UPDATE element SET parent_id=:parentId, namespace=:ns, info=:info, relations=:rels, " +
             "sub_element_ids=sub_element_ids+:subs " +
             "WHERE space=:space AND item_id=:item AND version_id=:ver AND element_id=:id")
     void create(@Param("space") String space,
                 @Param("item") String itemId,
                 @Param("ver") String versionId,
                 @Param("id") String elementId,
+                @Param("parentId") String parentElementId,
                 @Param("ns") String namespace,
                 @Param("info") String info,
                 @Param("rels") String relations,
@@ -236,7 +239,7 @@ public class ElementCassandraRepository implements ElementRepository {
     @Query("DELETE FROM element WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     void delete(String space, String itemId, String versionId, String elementId);
 
-    @Query("SELECT namespace, info, relations, sub_element_ids FROM element " +
+    @Query("SELECT parent_id, namespace, info, relations, sub_element_ids FROM element " +
         "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     ResultSet get(String space, String itemId, String versionId, String elementId);
 

@@ -16,18 +16,18 @@
 
 package org.amdocs.tsuzammen.plugin.statestore.cassandra;
 
-import org.amdocs.tsuzammen.datatypes.Namespace;
 import org.amdocs.tsuzammen.datatypes.item.ElementInfo;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.DaoConstants;
 import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
+import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 
 import java.util.stream.Collectors;
 
 class StateStoreUtils {
 
-  static ElementEntity getElementEntity(Namespace namespace, ElementInfo elementInfo) {
+  static ElementEntity getElementEntity(ElementInfo elementInfo) {
     ElementEntity elementEntity = new ElementEntity(elementInfo.getId());
-    elementEntity.setNamespace(namespace);
+    elementEntity.setNamespace(elementInfo.getNamespace());
     elementEntity.setParentId(elementInfo.getParentId() == null
         ? DaoConstants.ROOT_ELEMENTS_PARENT_ID
         : elementInfo.getParentId());
@@ -36,12 +36,15 @@ class StateStoreUtils {
     return elementEntity;
   }
 
-  static ElementInfo getElementInfo(ElementEntity elementEntity) {
-    ElementInfo elementInfo = new ElementInfo(elementEntity.getId());
+  static ElementInfo getElementInfo(ElementEntityContext elementEntityContext, ElementEntity
+      elementEntity) {
+    ElementInfo elementInfo = new ElementInfo(elementEntityContext.getItemId(),
+        elementEntityContext.getVersionId(), elementEntity.getId(), elementEntity.getParentId());
     elementInfo.setInfo(elementEntity.getInfo());
     elementInfo.setRelations(elementEntity.getRelations());
     elementInfo.setSubElements(elementEntity.getSubElementIds().stream()
-        .map(ElementInfo::new)
+        .map(subElementId -> new ElementInfo(
+            elementInfo.getItemId(), elementInfo.getVersionId(), subElementId, elementInfo.getId()))
         .collect(Collectors.toList()));
     return elementInfo;
   }

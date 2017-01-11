@@ -27,14 +27,10 @@ import org.amdocs.tsuzammen.datatypes.item.Info;
 import org.amdocs.tsuzammen.datatypes.item.Item;
 import org.amdocs.tsuzammen.datatypes.item.ItemVersion;
 import org.amdocs.tsuzammen.datatypes.workspace.WorkspaceInfo;
-import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ElementRepository;
-import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntity;
-import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 import org.amdocs.tsuzammen.sdk.StateStore;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class StateStoreImpl implements StateStore {
 
@@ -113,12 +109,6 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public Namespace getElementNamespace(SessionContext context,
-                                       ElementContext elementContext, Id elementId) {
-    return elementStateStore.getElementNamespace(context, elementContext, elementId);
-  }
-
-  @Override
   public boolean isElementExist(SessionContext context, ElementContext elementContext,
                                 Id elementId) {
     return elementStateStore.isElementExist(context, elementContext, elementId);
@@ -131,21 +121,18 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public void createElement(SessionContext context, ElementContext elementContext,
-                            Namespace namespace, ElementInfo elementInfo) {
-    elementStateStore.createElement(context, elementContext, namespace, elementInfo);
+  public void createElement(SessionContext context, ElementInfo elementInfo) {
+    elementStateStore.createElement(context, elementInfo);
   }
 
   @Override
-  public void saveElement(SessionContext context, ElementContext elementContext,
-                          ElementInfo elementInfo) {
-    elementStateStore.saveElement(context, elementContext, elementInfo);
+  public void saveElement(SessionContext context, ElementInfo elementInfo) {
+    elementStateStore.saveElement(context, elementInfo);
   }
 
   @Override
-  public void deleteElement(SessionContext context, ElementContext elementContext,
-                            ElementInfo elementInfo) {
-    elementStateStore.deleteElement(context, elementContext, elementInfo);
+  public void deleteElement(SessionContext context, ElementInfo elementInfo) {
+    elementStateStore.deleteElement(context, elementInfo);
   }
 
   @Override
