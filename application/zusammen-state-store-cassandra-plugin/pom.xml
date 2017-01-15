@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <groupId>org.amdocs.tsuzammen.plugin</groupId>
+        <groupId>org.amdocs.zusammen.plugin</groupId>
         <artifactId>application</artifactId>
         <version>0.0.1</version>
     </parent>
 
-    <artifactId>tsuzammen-state-store-cassandra-plugin</artifactId>
+    <artifactId>zusammen-state-store-cassandra-plugin</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
@@ -20,18 +20,18 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.amdocs.tsuzammen</groupId>
-            <artifactId>tsuzammen-sdk</artifactId>
+            <groupId>org.amdocs.zusammen</groupId>
+            <artifactId>zusammen-sdk</artifactId>
             <version>0.0.1</version>
         </dependency>
         <dependency>
-            <groupId>org.amdocs.tsuzammen</groupId>
-            <artifactId>tsuzammen-commons-db-api</artifactId>
+            <groupId>org.amdocs.zusammen</groupId>
+            <artifactId>zusammen-commons-db-api</artifactId>
             <version>0.0.1</version>
         </dependency>
         <dependency>
-            <groupId>org.amdocs.tsuzammen</groupId>
-            <artifactId>tsuzammen-commons-db-impl</artifactId>
+            <groupId>org.amdocs.zusammen</groupId>
+            <artifactId>zusammen-commons-db-impl</artifactId>
             <version>0.0.1</version>
             <scope>runtime</scope>
         </dependency>

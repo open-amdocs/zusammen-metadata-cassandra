@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.amdocs.tsuzammen.plugin</groupId>
-        <artifactId>tsuzammen-state-store</artifactId>
+        <groupId>org.amdocs.zusammen.plugin</groupId>
+        <artifactId>zusammen-state-store</artifactId>
         <version>0.0.1</version>
     </parent>
 
@@ -14,7 +14,7 @@
     <version>0.0.1</version>
     <packaging>pom</packaging>
     <modules>
-        <module>tsuzammen-state-store-cassandra-plugin</module>
+        <module>zusammen-state-store-cassandra-plugin</module>
     </modules>
 
 </project>
