@@ -151,7 +151,7 @@ public class ElementStateStoreTest {
     elementInfo.setInfo(TestUtils.createInfo("elm1 updated"));
     elementInfo.setRelations(Arrays.asList(createRelation("r1"), createRelation("r2")));
 
-    elementStateStore.saveElement(context, elementInfo);
+    elementStateStore.updateElement(context, elementInfo);
 
     verify(elementRepositoryMock).update(anyObject(), anyObject(), elementEntityCaptor.capture());
 

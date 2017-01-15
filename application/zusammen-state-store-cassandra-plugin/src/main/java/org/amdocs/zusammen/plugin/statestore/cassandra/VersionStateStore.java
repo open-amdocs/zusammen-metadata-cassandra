@@ -64,38 +64,6 @@ class VersionStateStore {
     copyElements(context, space, itemId, baseVersionId, versionId);
   }
 
-
-  void publishItemVersion(SessionContext context, Id itemId, Id versionId) {
-    String privateSpace = context.getUser().getUserName();
-
-    copyVersionInfo(context, privateSpace, StateStoreConstants.PUBLIC_SPACE, itemId, versionId);
-    copyElements(context, privateSpace, StateStoreConstants.PUBLIC_SPACE, itemId, versionId);
-  }
-
-
-  void syncItemVersion(SessionContext context, Id itemId, Id versionId) {
-
-  }
-
-  private void copyVersionInfo(SessionContext context, String sourceSpace, String targetSpace,
-                               Id itemId, Id versionId) {
-/*    Optional<ItemVersion> itemVersion =
-        getOptionalItemVersion(context, sourceSpace, itemId, versionId);
-    getVersionDao(context).update(context, targetSpace, itemId, versionId, versionInfo);*/
-  }
-
-  private void copyElements(SessionContext context, String sourceSpace, String targetSpace,
-                            Id itemId, Id versionId) {
-    ElementRepository elementRepository = getElementRepository(context);
-
-    ElementEntityContext elementContext = new ElementEntityContext(sourceSpace, itemId, versionId);
-    Collection<ElementEntity> elementEntities = elementRepository.list(context, elementContext);
-
-    elementContext.setSpace(targetSpace);
-    elementEntities
-        .forEach(elementEntity -> elementRepository.create(context, elementContext, elementEntity));
-  }
-
   private void copyElements(SessionContext context, String space, Id itemId, Id sourceVersionId,
                             Id targetVersionId) {
     ElementRepository elementRepository = getElementRepository(context);
@@ -108,7 +76,7 @@ class VersionStateStore {
         .forEach(elementEntity -> elementRepository.create(context, elementContext, elementEntity));
   }
 
-  Optional<ItemVersion> getOptionalItemVersion(SessionContext context, String space,
+  private Optional<ItemVersion> getOptionalItemVersion(SessionContext context, String space,
                                                Id itemId, Id versionId) {
     return getVersionDao(context).get(context, space, itemId, versionId);
   }

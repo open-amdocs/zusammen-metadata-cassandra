@@ -19,7 +19,6 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.FetchCriteria;
 import org.amdocs.zusammen.datatypes.Id;
-import org.amdocs.zusammen.datatypes.Namespace;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
 import org.amdocs.zusammen.datatypes.item.ElementInfo;
@@ -91,18 +90,6 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public void publishItemVersion(SessionContext context, Id itemId, Id versionId) {
-
-    versionStateStore.publishItemVersion(context, itemId, versionId);
-  }
-
-  @Override
-  public void syncItemVersion(SessionContext context, Id itemId, Id versionId) {
-
-    versionStateStore.syncItemVersion(context, itemId, versionId);
-  }
-
-  @Override
   public Collection<ElementInfo> listElements(SessionContext context,
                                               ElementContext elementContext, Id elementId) {
     return elementStateStore.listElements(context, elementContext, elementId);
@@ -126,8 +113,8 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public void saveElement(SessionContext context, ElementInfo elementInfo) {
-    elementStateStore.saveElement(context, elementInfo);
+  public void updateElement(SessionContext context, ElementInfo elementInfo) {
+    elementStateStore.updateElement(context, elementInfo);
   }
 
   @Override

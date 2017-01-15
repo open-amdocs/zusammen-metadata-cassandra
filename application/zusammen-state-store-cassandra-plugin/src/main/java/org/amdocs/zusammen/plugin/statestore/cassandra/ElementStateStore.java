@@ -82,7 +82,7 @@ class ElementStateStore {
         StateStoreUtils.getElementEntity(elementInfo));
   }
 
-  void saveElement(SessionContext context, ElementInfo elementInfo) {
+  void updateElement(SessionContext context, ElementInfo elementInfo) {
     ElementEntityContext elementEntityContext =
         new ElementEntityContext(context.getUser().getUserName(),
             elementInfo.getItemId(),
