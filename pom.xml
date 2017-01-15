@@ -2,8 +2,8 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.amdocs.tsuzammen.plugin</groupId>
-    <artifactId>tsuzammen-state-store</artifactId>
+    <groupId>org.amdocs.zusammen.plugin</groupId>
+    <artifactId>zusammen-state-store</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
     <url>http://maven.apache.org</url>
@@ -86,7 +86,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
+                <version>3.3</version>
                 <inherited>true</inherited>
                 <configuration>
                     <source>${java.source}</source>
