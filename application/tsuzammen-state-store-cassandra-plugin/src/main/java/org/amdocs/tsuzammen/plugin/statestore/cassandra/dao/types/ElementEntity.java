@@ -96,33 +96,11 @@ public class ElementEntity {
 
     ElementEntity that = (ElementEntity) o;
 
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (parentId != null ? !parentId.equals(that.parentId) : that.parentId != null) {
-      return false;
-    }
-    if (namespace != null ? !namespace.equals(that.namespace) : that.namespace != null) {
-      return false;
-    }
-    if (info != null ? !info.equals(that.info) : that.info != null) {
-      return false;
-    }
-    if (relations != null ? !relations.equals(that.relations) : that.relations != null) {
-      return false;
-    }
-    return subElementIds != null ? subElementIds.equals(that.subElementIds)
-        : that.subElementIds == null;
+    return id.equals(that.id);
   }
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (parentId != null ? parentId.hashCode() : 0);
-    result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
-    result = 31 * result + (info != null ? info.hashCode() : 0);
-    result = 31 * result + (relations != null ? relations.hashCode() : 0);
-    result = 31 * result + (subElementIds != null ? subElementIds.hashCode() : 0);
-    return result;
+    return id.hashCode();
   }
 }

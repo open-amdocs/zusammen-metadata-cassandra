@@ -32,10 +32,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ElementStateStore {
+class ElementStateStore {
 
-  public Collection<ElementInfo> listElements(SessionContext context, ElementContext elementContext,
-                                              Id elementId) {
+  Collection<ElementInfo> listElements(SessionContext context, ElementContext elementContext,
+                                       Id elementId) {
     ElementEntityContext elementEntityContext =
         new ElementEntityContext(context.getUser().getUserName(), elementContext);
 
@@ -55,15 +55,15 @@ public class ElementStateStore {
         .collect(Collectors.toList());
   }
 
-  public boolean isElementExist(SessionContext context, ElementContext elementContext,
-                                Id elementId) {
+  boolean isElementExist(SessionContext context, ElementContext elementContext,
+                         Id elementId) {
     return getElementRepository(context).get(context,
         new ElementEntityContext(context.getUser().getUserName(), elementContext),
         new ElementEntity(elementId)).isPresent();
   }
 
-  public ElementInfo getElement(SessionContext context, ElementContext elementContext,
-                                Id elementId, FetchCriteria fetchCriteria) {
+  ElementInfo getElement(SessionContext context, ElementContext elementContext,
+                         Id elementId, FetchCriteria fetchCriteria) {
     ElementEntityContext elementEntityContext =
         new ElementEntityContext(context.getUser().getUserName(), elementContext);
     return getElement(context, elementEntityContext, elementId);
@@ -75,14 +75,14 @@ public class ElementStateStore {
         getElementEntity(context, elementEntityContext, new ElementEntity(elementId)));
   }
 
-  public void createElement(SessionContext context, ElementInfo elementInfo) {
+  void createElement(SessionContext context, ElementInfo elementInfo) {
     getElementRepository(context).create(context,
         new ElementEntityContext(context.getUser().getUserName(), elementInfo.getItemId(),
             elementInfo.getVersionId()),
         StateStoreUtils.getElementEntity(elementInfo));
   }
 
-  public void saveElement(SessionContext context, ElementInfo elementInfo) {
+  void saveElement(SessionContext context, ElementInfo elementInfo) {
     ElementEntityContext elementEntityContext =
         new ElementEntityContext(context.getUser().getUserName(),
             elementInfo.getItemId(),
@@ -92,7 +92,7 @@ public class ElementStateStore {
         StateStoreUtils.getElementEntity(elementInfo));
   }
 
-  public void deleteElement(SessionContext context, ElementInfo elementInfo) {
+  void deleteElement(SessionContext context, ElementInfo elementInfo) {
     deleteElementHierarchy(getElementRepository(context),
         context,
         new ElementEntityContext(context.getUser().getUserName(), elementInfo.getItemId(),

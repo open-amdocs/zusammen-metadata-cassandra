@@ -26,35 +26,35 @@ import org.amdocs.tsuzammen.plugin.statestore.cassandra.dao.ItemDaoFactory;
 import java.util.Collection;
 import java.util.Optional;
 
-public class ItemStateStore {
+class ItemStateStore {
 
-  public Collection<Item> listItems(SessionContext context) {
+  Collection<Item> listItems(SessionContext context) {
     return getItemDao(context).list(context);
   }
 
 
-  public boolean isItemExist(SessionContext context, Id itemId) {
+  boolean isItemExist(SessionContext context, Id itemId) {
     return true;
   }
 
 
-  public Item getItem(SessionContext context, Id itemId) {
+  Item getItem(SessionContext context, Id itemId) {
     return getOptionalItem(context, itemId).orElseThrow(() ->
         new RuntimeException(String.format(StateStoreMessages.ITEM_NOT_EXIST, itemId)));
   }
 
 
-  public void createItem(SessionContext context, Id itemId, Info itemInfo) {
+  void createItem(SessionContext context, Id itemId, Info itemInfo) {
     getItemDao(context).create(context, itemId, itemInfo);
   }
 
 
-  public void saveItem(SessionContext context, Id itemId, Info itemInfo) {
+  void saveItem(SessionContext context, Id itemId, Info itemInfo) {
     getItemDao(context).save(context, itemId, itemInfo);
   }
 
 
-  public void deleteItem(SessionContext context, Id itemId) {
+  void deleteItem(SessionContext context, Id itemId) {
     getItemDao(context).delete(context, itemId);
   }
 
