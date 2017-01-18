@@ -40,6 +40,7 @@ class StateStoreUtils {
       elementEntity) {
     ElementInfo elementInfo = new ElementInfo(elementEntityContext.getItemId(),
         elementEntityContext.getVersionId(), elementEntity.getId(), elementEntity.getParentId());
+    elementInfo.setNamespace(elementEntity.getNamespace());
     elementInfo.setInfo(elementEntity.getInfo());
     elementInfo.setRelations(elementEntity.getRelations());
     elementInfo.setSubElements(elementEntity.getSubElementIds().stream()
