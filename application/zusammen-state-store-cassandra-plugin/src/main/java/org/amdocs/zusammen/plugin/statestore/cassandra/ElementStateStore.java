@@ -19,6 +19,7 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 import org.amdocs.zusammen.datatypes.FetchCriteria;
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
+import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
 import org.amdocs.zusammen.datatypes.item.ElementInfo;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.DaoConstants;
@@ -37,7 +38,7 @@ class ElementStateStore {
   Collection<ElementInfo> listElements(SessionContext context, ElementContext elementContext,
                                        Id elementId) {
     ElementEntityContext elementEntityContext =
-        new ElementEntityContext(context.getUser().getUserName(), elementContext);
+        new ElementEntityContext(getPrivateSpaceName(context), elementContext);
 
     if (elementId == null) {
       elementId = DaoConstants.ROOT_ELEMENTS_PARENT_ID;
@@ -58,14 +59,14 @@ class ElementStateStore {
   boolean isElementExist(SessionContext context, ElementContext elementContext,
                          Id elementId) {
     return getElementRepository(context).get(context,
-        new ElementEntityContext(context.getUser().getUserName(), elementContext),
+        new ElementEntityContext(getPrivateSpaceName(context), elementContext),
         new ElementEntity(elementId)).isPresent();
   }
 
   ElementInfo getElement(SessionContext context, ElementContext elementContext,
                          Id elementId, FetchCriteria fetchCriteria) {
     ElementEntityContext elementEntityContext =
-        new ElementEntityContext(context.getUser().getUserName(), elementContext);
+        new ElementEntityContext(getPrivateSpaceName(context), elementContext);
     return getElement(context, elementEntityContext, elementId);
   }
 
@@ -77,14 +78,15 @@ class ElementStateStore {
 
   void createElement(SessionContext context, ElementInfo elementInfo) {
     getElementRepository(context).create(context,
-        new ElementEntityContext(context.getUser().getUserName(), elementInfo.getItemId(),
+        new ElementEntityContext(getSpaceName(elementInfo.getSpace(), context),
+            elementInfo.getItemId(),
             elementInfo.getVersionId()),
         StateStoreUtils.getElementEntity(elementInfo));
   }
 
   void updateElement(SessionContext context, ElementInfo elementInfo) {
     ElementEntityContext elementEntityContext =
-        new ElementEntityContext(context.getUser().getUserName(),
+        new ElementEntityContext(getSpaceName(elementInfo.getSpace(), context),
             elementInfo.getItemId(),
             elementInfo.getVersionId());
     getElement(context, elementEntityContext, elementInfo.getId());
@@ -95,7 +97,7 @@ class ElementStateStore {
   void deleteElement(SessionContext context, ElementInfo elementInfo) {
     deleteElementHierarchy(getElementRepository(context),
         context,
-        new ElementEntityContext(context.getUser().getUserName(), elementInfo.getItemId(),
+        new ElementEntityContext(getSpaceName(elementInfo.getSpace(), context), elementInfo.getItemId(),
             elementInfo.getVersionId()),
         StateStoreUtils.getElementEntity(elementInfo));
   }
@@ -126,6 +128,21 @@ class ElementStateStore {
                 elementEntityContext.getItemId(), elementEntityContext.getVersionId(),
                 elementEntity, elementEntityContext.getSpace()))
         );
+  }
+
+  private String getSpaceName(Space space, SessionContext context) {
+    switch (space) {
+      case PUBLIC:
+        return StateStoreConstants.PUBLIC_SPACE;
+      case PRIVATE:
+        return getPrivateSpaceName(context);
+      default:
+        throw new IllegalArgumentException(String.format("Space %s is not supported.", space));
+    }
+  }
+
+  private String getPrivateSpaceName(SessionContext context) {
+    return context.getUser().getUserName();
   }
 
   protected ElementRepository getElementRepository(SessionContext context) {
