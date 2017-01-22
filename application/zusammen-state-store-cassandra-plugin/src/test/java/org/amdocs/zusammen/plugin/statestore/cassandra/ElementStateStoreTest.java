@@ -102,7 +102,7 @@ public class ElementStateStoreTest {
 
     ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
     ElementInfo element =
-        elementStateStore.getElement(context, elementContext, retrievedElement.getId(), null);
+        elementStateStore.getElement(context, elementContext, retrievedElement.getId());
 
     Assert.assertNotNull(element);
     Assert.assertEquals(element.getId(), retrievedElement.getId());
@@ -121,7 +121,7 @@ public class ElementStateStoreTest {
         .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
 
     ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
-    elementStateStore.getElement(context, elementContext, new Id(), null);
+    elementStateStore.getElement(context, elementContext, new Id());
   }
 
   @Test

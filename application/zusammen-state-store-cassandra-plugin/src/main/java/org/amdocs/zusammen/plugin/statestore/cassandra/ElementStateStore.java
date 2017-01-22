@@ -16,7 +16,6 @@
 
 package org.amdocs.zusammen.plugin.statestore.cassandra;
 
-import org.amdocs.zusammen.datatypes.FetchCriteria;
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.Space;
@@ -64,7 +63,7 @@ class ElementStateStore {
   }
 
   ElementInfo getElement(SessionContext context, ElementContext elementContext,
-                         Id elementId, FetchCriteria fetchCriteria) {
+                         Id elementId) {
     ElementEntityContext elementEntityContext =
         new ElementEntityContext(getPrivateSpaceName(context), elementContext);
     return getElement(context, elementEntityContext, elementId);

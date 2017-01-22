@@ -17,7 +17,6 @@
 package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 
-import org.amdocs.zusammen.datatypes.FetchCriteria;
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
@@ -103,8 +102,8 @@ public class StateStoreImpl implements StateStore {
 
   @Override
   public ElementInfo getElement(SessionContext context, ElementContext elementContext,
-                                Id elementId, FetchCriteria fetchCriteria) {
-    return elementStateStore.getElement(context, elementContext, elementId, fetchCriteria);
+                                Id elementId) {
+    return elementStateStore.getElement(context, elementContext, elementId);
   }
 
   @Override
