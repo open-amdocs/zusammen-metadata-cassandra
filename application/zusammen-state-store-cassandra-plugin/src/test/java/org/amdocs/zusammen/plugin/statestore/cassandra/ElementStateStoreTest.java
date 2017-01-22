@@ -52,8 +52,6 @@ public class ElementStateStoreTest {
   private static final String USER = "ElementStateStoreTest_user";
   private static final SessionContext context =
       TestUtils.createSessionContext(new UserInfo(USER), TENANT);
-  private static final String ELEMENT_NOT_EXIST_ERR =
-      "Item Id .*, version Id .*, Element Id .* does not exist in space .*";
 
   @Spy
   private ElementStateStore elementStateStore;
@@ -114,14 +112,15 @@ public class ElementStateStoreTest {
         .forEach(subElement -> retrievedElement.getSubElementIds().contains(subElement.getId()));
   }
 
-  @Test(expectedExceptions = RuntimeException.class,
-      expectedExceptionsMessageRegExp = ELEMENT_NOT_EXIST_ERR)
+  @Test
   public void testGetNonExistingElement() throws Exception {
     doReturn(Optional.empty())
         .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
 
     ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
-    elementStateStore.getElement(context, elementContext, new Id());
+    ElementInfo element = elementStateStore.getElement(context, elementContext, new Id());
+
+    Assert.assertNull(element);
   }
 
   @Test
@@ -190,9 +189,8 @@ public class ElementStateStoreTest {
         .delete(eq(context), eq(elementEntityContext), eq(retrievedElement));
     retrievedElement.getSubElementIds().stream()
         .map(ElementEntity::new)
-        .forEach(subElement ->
-            verify(elementRepositoryMock)
-                .delete(eq(context), eq(elementEntityContext), eq(subElement)));
+        .forEach(subElement -> verify(elementRepositoryMock)
+            .delete(eq(context), eq(elementEntityContext), eq(subElement)));
   }
 
   private ElementEntity getRetrievedElement() {
