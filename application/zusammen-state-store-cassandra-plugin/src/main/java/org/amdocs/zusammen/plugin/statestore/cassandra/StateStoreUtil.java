@@ -16,20 +16,25 @@
 
 package org.amdocs.zusammen.plugin.statestore.cassandra;
 
+import org.amdocs.zusammen.datatypes.Id;
+import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.item.ElementInfo;
-import org.amdocs.zusammen.plugin.statestore.cassandra.dao.DaoConstants;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 
 import java.util.stream.Collectors;
 
-class StateStoreUtils {
+class StateStoreUtil {
+
+  static String getPrivateSpaceName(SessionContext context) {
+    return context.getUser().getUserName();
+  }
 
   static ElementEntity getElementEntity(ElementInfo elementInfo) {
     ElementEntity elementEntity = new ElementEntity(elementInfo.getId());
     elementEntity.setNamespace(elementInfo.getNamespace());
     elementEntity.setParentId(elementInfo.getParentId() == null
-        ? DaoConstants.ROOT_ELEMENTS_PARENT_ID
+        ? StateStoreConstants.ROOT_ELEMENTS_PARENT_ID
         : elementInfo.getParentId());
     elementEntity.setInfo(elementInfo.getInfo());
     elementEntity.setRelations(elementInfo.getRelations());
@@ -38,8 +43,12 @@ class StateStoreUtils {
 
   static ElementInfo getElementInfo(ElementEntityContext elementEntityContext, ElementEntity
       elementEntity) {
+    Id parentId = elementEntity.getParentId() == StateStoreConstants.ROOT_ELEMENTS_PARENT_ID
+        ? null
+        : elementEntity.getParentId();
     ElementInfo elementInfo = new ElementInfo(elementEntityContext.getItemId(),
-        elementEntityContext.getVersionId(), elementEntity.getId(), elementEntity.getParentId());
+        elementEntityContext.getVersionId(), elementEntity.getId(), parentId);
+
     elementInfo.setNamespace(elementEntity.getNamespace());
     elementInfo.setInfo(elementEntity.getInfo());
     elementInfo.setRelations(elementEntity.getRelations());

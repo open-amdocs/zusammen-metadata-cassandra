@@ -17,6 +17,9 @@
 package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 
+import org.amdocs.zusammen.datatypes.Id;
+
 class StateStoreConstants {
   static final String PUBLIC_SPACE = "public";
+  static final Id ROOT_ELEMENTS_PARENT_ID = Id.ZERO;
 }

@@ -24,7 +24,6 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDao;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDaoFactory;
 
 import java.util.Collection;
-import java.util.Optional;
 
 class ItemStateStore {
 
@@ -32,34 +31,24 @@ class ItemStateStore {
     return getItemDao(context).list(context);
   }
 
-
   boolean isItemExist(SessionContext context, Id itemId) {
-    return true;
+    return getItemDao(context).get(context, itemId).isPresent();
   }
-
 
   Item getItem(SessionContext context, Id itemId) {
-    return getOptionalItem(context, itemId).orElseThrow(() ->
-        new RuntimeException(String.format(StateStoreMessages.ITEM_NOT_EXIST, itemId)));
+    return getItemDao(context).get(context, itemId).orElse(null);
   }
-
 
   void createItem(SessionContext context, Id itemId, Info itemInfo) {
     getItemDao(context).create(context, itemId, itemInfo);
   }
 
-
   void saveItem(SessionContext context, Id itemId, Info itemInfo) {
     getItemDao(context).save(context, itemId, itemInfo);
   }
 
-
   void deleteItem(SessionContext context, Id itemId) {
     getItemDao(context).delete(context, itemId);
-  }
-
-  private Optional<Item> getOptionalItem(SessionContext context, Id itemId) {
-    return getItemDao(context).get(context, itemId);
   }
 
   private ItemDao getItemDao(SessionContext context) {

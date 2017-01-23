@@ -21,10 +21,8 @@ public class VersionCassandraDao implements VersionDao {
 
   @Override
   public void create(SessionContext context, String space, Id itemId, Id versionId,
-                     Id baseVersionId,
-                     Info versionInfo) {
-
-    String baseVersion = baseVersionId!=null?baseVersionId.toString():null;
+                     Id baseVersionId, Info versionInfo) {
+    String baseVersion = baseVersionId != null ? baseVersionId.toString() : null;
 
     getAccessor(context)
         .create(space, itemId.toString(), versionId.toString(), baseVersion,
@@ -45,7 +43,7 @@ public class VersionCassandraDao implements VersionDao {
 
   @Override
   public Collection<ItemVersion> list(SessionContext context, String space, Id itemId) {
-    List<Row> rows = getAccessor(context).list(space, itemId).all();
+    List<Row> rows = getAccessor(context).list(space, itemId.toString()).all();
     return rows == null ? new ArrayList<>() :
         rows.stream().map(this::createItemVersion).collect(Collectors.toList());
   }
@@ -89,7 +87,7 @@ public class VersionCassandraDao implements VersionDao {
 
     @Query("SELECT version_id, base_version_id, version_info FROM version " +
         "WHERE space=? AND item_id=?")
-    ResultSet list(String space, Id itemId);
+    ResultSet list(String space, String itemId);
   }
 
   private static final class VersionField {

@@ -42,7 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ElementCassandraRepository implements ElementRepository {
+public class CassandraElementRepository implements ElementRepository {
 
   @Override
   public Collection<ElementEntity> list(SessionContext context,
@@ -169,6 +169,7 @@ public class ElementCassandraRepository implements ElementRepository {
 
   private ElementEntity getElementEntity(ElementEntity element, Row row) {
     element.setNamespace(getNamespace(row.getString(ElementField.NAMESPACE)));
+    element.setParentId(new Id(row.getString(ElementField.PARENT_ID)));
     element.setInfo(json2Object(row.getString(ElementField.INFO), Info.class));
     element.setRelations(
         json2Object(row.getString(ElementField.RELATIONS), new TypeToken<ArrayList<Relation>>() {
@@ -256,6 +257,7 @@ public class ElementCassandraRepository implements ElementRepository {
 
   private static final class ElementField {
     private static final String NAMESPACE = "namespace";
+    private static final String PARENT_ID = "parent_id";
     private static final String INFO = "info";
     private static final String RELATIONS = "relations";
     private static final String SUB_ELEMENT_IDS = "sub_element_ids";

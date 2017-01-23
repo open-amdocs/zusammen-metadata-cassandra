@@ -89,6 +89,16 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
+  public void updateItemVersion(SessionContext context, Id itemId, Id versionId, Info versionInfo) {
+    versionStateStore.updateItemVersion(context, itemId, versionId, versionInfo);
+  }
+
+  @Override
+  public void deleteItemVersion(SessionContext context, Id itemId, Id versionId) {
+    versionStateStore.deleteItemVersion(context, itemId, versionId);
+  }
+
+  @Override
   public Collection<ElementInfo> listElements(SessionContext context,
                                               ElementContext elementContext, Id elementId) {
     return elementStateStore.listElements(context, elementContext, elementId);

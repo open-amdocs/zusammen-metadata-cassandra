@@ -28,57 +28,67 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 
 import java.util.Collection;
-import java.util.Optional;
+
+import static org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreUtil.getPrivateSpaceName;
 
 class VersionStateStore {
 
   Collection<ItemVersion> listItemVersions(SessionContext context, Id itemId) {
-    return getVersionDao(context).list(context, context.getUser().getUserName(), itemId);
+    return getVersionDao(context).list(context, getPrivateSpaceName(context), itemId);
   }
-
 
   boolean isItemVersionExist(SessionContext context, Id itemId, Id versionId) {
-    return true;
+    return getVersionDao(context).get(context, getPrivateSpaceName(context), itemId, versionId)
+        .isPresent();
   }
-
 
   ItemVersion getItemVersion(SessionContext context, Id itemId, Id versionId) {
-    String privateSpace = context.getUser().getUserName();
-    return getOptionalItemVersion(context, privateSpace, itemId, versionId)
-        .orElseThrow(() -> new RuntimeException(
-            String.format(StateStoreMessages.ITEM_VERSION_NOT_EXIST,
-                itemId, versionId, privateSpace)));
+    String space = getPrivateSpaceName(context);
+    return getVersionDao(context).get(context, space, itemId, versionId).orElse(null);
   }
-
 
   void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
                          Id versionId, Info versionInfo) {
-    String space = context.getUser().getUserName();
-    getVersionDao(context)
-        .create(context, space, itemId, versionId, baseVersionId, versionInfo);
+    String space = getPrivateSpaceName(context);
 
+    getVersionDao(context).create(context, space, itemId, versionId, baseVersionId, versionInfo);
     if (baseVersionId == null) {
       return;
     }
-
     copyElements(context, space, itemId, baseVersionId, versionId);
+  }
+
+  void updateItemVersion(SessionContext context, Id itemId, Id versionId, Info versionInfo) {
+    getVersionDao(context)
+        .update(context, getPrivateSpaceName(context), itemId, versionId, versionInfo);
+  }
+
+  void deleteItemVersion(SessionContext context, Id itemId, Id versionId) {
+    String space = getPrivateSpaceName(context);
+
+    deleteElements(context, space, itemId, versionId);
+    getVersionDao(context).delete(context, space, itemId, versionId);
   }
 
   private void copyElements(SessionContext context, String space, Id itemId, Id sourceVersionId,
                             Id targetVersionId) {
     ElementRepository elementRepository = getElementRepository(context);
-
     ElementEntityContext elementContext = new ElementEntityContext(space, itemId, sourceVersionId);
-    Collection<ElementEntity> elementEntities = elementRepository.list(context, elementContext);
 
+    Collection<ElementEntity> versionElements = elementRepository.list(context, elementContext);
     elementContext.setVersionId(targetVersionId);
-    elementEntities
+    versionElements
         .forEach(elementEntity -> elementRepository.create(context, elementContext, elementEntity));
   }
 
-  private Optional<ItemVersion> getOptionalItemVersion(SessionContext context, String space,
-                                               Id itemId, Id versionId) {
-    return getVersionDao(context).get(context, space, itemId, versionId);
+  private void deleteElements(SessionContext context, String space, Id itemId, Id versionId) {
+    ElementRepository elementRepository = getElementRepository(context);
+    ElementEntityContext elementContext = new ElementEntityContext(space, itemId, versionId);
+
+    Collection<ElementEntity> versionElements = elementRepository.list(context, elementContext);
+    versionElements.stream()
+        .peek(elementEntity -> elementEntity.setParentId(null))
+        .forEach(elementEntity -> elementRepository.delete(context, elementContext, elementEntity));
   }
 
   VersionDao getVersionDao(SessionContext context) {
@@ -88,4 +98,5 @@ class VersionStateStore {
   private ElementRepository getElementRepository(SessionContext context) {
     return ElementRepositoryFactory.getInstance().createInterface(context);
   }
+
 }

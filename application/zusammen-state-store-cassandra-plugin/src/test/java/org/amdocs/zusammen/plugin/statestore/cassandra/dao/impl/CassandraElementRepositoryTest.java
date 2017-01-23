@@ -14,13 +14,13 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 
-public class ElementCassandraRepositoryTest {
+public class CassandraElementRepositoryTest {
 
-  private static final String USER = "ElementCassandraRepositoryTest";
+  private static final String USER = "CassandraElementRepositoryTest";
 
   @Test
   public void testCreate() throws Exception {
-    ElementRepository elementRepository = new ElementCassandraRepository();
+    ElementRepository elementRepository = new CassandraElementRepository();
     SessionContext context =
         TestUtils.createSessionContext(new UserInfo(USER), "test");
 
