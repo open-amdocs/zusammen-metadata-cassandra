@@ -140,7 +140,7 @@ public class ElementStateStoreTest {
   }
 
   @Test
-  public void testSaveElement() throws Exception {
+  public void testUpdateElement() throws Exception {
     ElementEntity retrievedElement = getRetrievedElement();
     doReturn(Optional.of(retrievedElement))
         .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());

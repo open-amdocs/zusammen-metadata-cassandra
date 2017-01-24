@@ -18,6 +18,7 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
+import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.ElementInfo;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
@@ -25,6 +26,17 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityCo
 import java.util.stream.Collectors;
 
 class StateStoreUtil {
+
+  static String getSpaceName(Space space, SessionContext context) {
+    switch (space) {
+      case PUBLIC:
+        return StateStoreConstants.PUBLIC_SPACE;
+      case PRIVATE:
+        return StateStoreUtil.getPrivateSpaceName(context);
+      default:
+        throw new IllegalArgumentException(String.format("Space %s is not supported.", space));
+    }
+  }
 
   static String getPrivateSpaceName(SessionContext context) {
     return context.getUser().getUserName();

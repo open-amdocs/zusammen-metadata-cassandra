@@ -18,7 +18,6 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
-import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
 import org.amdocs.zusammen.datatypes.item.ElementInfo;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepository;
@@ -31,6 +30,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreUtil.getSpaceName;
 
 class ElementStateStore {
 
@@ -109,17 +110,6 @@ class ElementStateStore {
 
     // only for the first one the parentId will populated (so it'll be removed from its parent)
     elementRepository.delete(context, elementEntityContext, elementEntity);
-  }
-
-  private String getSpaceName(Space space, SessionContext context) {
-    switch (space) {
-      case PUBLIC:
-        return StateStoreConstants.PUBLIC_SPACE;
-      case PRIVATE:
-        return StateStoreUtil.getPrivateSpaceName(context);
-      default:
-        throw new IllegalArgumentException(String.format("Space %s is not supported.", space));
-    }
   }
 
   protected ElementRepository getElementRepository(SessionContext context) {

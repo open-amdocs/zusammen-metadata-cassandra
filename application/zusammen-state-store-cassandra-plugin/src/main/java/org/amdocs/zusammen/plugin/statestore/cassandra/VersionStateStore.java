@@ -18,8 +18,9 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
-import org.amdocs.zusammen.datatypes.item.Info;
+import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.ItemVersion;
+import org.amdocs.zusammen.datatypes.item.ItemVersionData;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepository;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepositoryFactory;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.VersionDao;
@@ -30,6 +31,7 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityCo
 import java.util.Collection;
 
 import static org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreUtil.getPrivateSpaceName;
+import static org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreUtil.getSpaceName;
 
 class VersionStateStore {
 
@@ -48,26 +50,27 @@ class VersionStateStore {
   }
 
   void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
-                         Id versionId, Info versionInfo) {
-    String space = getPrivateSpaceName(context);
+                         Id versionId, Space space, ItemVersionData data) {
+    String spaceName = getSpaceName(space, context);
 
-    getVersionDao(context).create(context, space, itemId, versionId, baseVersionId, versionInfo);
+    getVersionDao(context).create(context, spaceName, itemId, versionId, baseVersionId, data);
     if (baseVersionId == null) {
       return;
     }
-    copyElements(context, space, itemId, baseVersionId, versionId);
+    copyElements(context, spaceName, itemId, baseVersionId, versionId);
   }
 
-  void updateItemVersion(SessionContext context, Id itemId, Id versionId, Info versionInfo) {
+  void updateItemVersion(SessionContext context, Id itemId, Id versionId, Space space,
+                         ItemVersionData data) {
     getVersionDao(context)
-        .update(context, getPrivateSpaceName(context), itemId, versionId, versionInfo);
+        .update(context, getSpaceName(space, context), itemId, versionId, data);
   }
 
-  void deleteItemVersion(SessionContext context, Id itemId, Id versionId) {
-    String space = getPrivateSpaceName(context);
+  void deleteItemVersion(SessionContext context, Id itemId, Id versionId, Space space) {
+    String spaceName = getSpaceName(space, context);
 
-    deleteElements(context, space, itemId, versionId);
-    getVersionDao(context).delete(context, space, itemId, versionId);
+    deleteElements(context, spaceName, itemId, versionId);
+    getVersionDao(context).delete(context, spaceName, itemId, versionId);
   }
 
   private void copyElements(SessionContext context, String space, Id itemId, Id sourceVersionId,

@@ -4,10 +4,13 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.mapping.annotations.Accessor;
 import com.datastax.driver.mapping.annotations.Query;
+import com.google.gson.reflect.TypeToken;
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.item.Info;
 import org.amdocs.zusammen.datatypes.item.ItemVersion;
+import org.amdocs.zusammen.datatypes.item.ItemVersionData;
+import org.amdocs.zusammen.datatypes.item.Relation;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.VersionDao;
 import org.amdocs.zusammen.utils.fileutils.json.JsonUtil;
 
@@ -21,19 +24,20 @@ public class VersionCassandraDao implements VersionDao {
 
   @Override
   public void create(SessionContext context, String space, Id itemId, Id versionId,
-                     Id baseVersionId, Info versionInfo) {
+                     Id baseVersionId, ItemVersionData data) {
     String baseVersion = baseVersionId != null ? baseVersionId.toString() : null;
 
     getAccessor(context)
         .create(space, itemId.toString(), versionId.toString(), baseVersion,
-            JsonUtil.object2Json(versionInfo));
+            JsonUtil.object2Json(data.getInfo()), JsonUtil.object2Json(data.getRelations()));
   }
 
   @Override
   public void update(SessionContext context, String space, Id itemId, Id versionId,
-                     Info versionInfo) {
-    getAccessor(context).update(JsonUtil.object2Json(versionInfo), space, itemId.toString(),
-        versionId.toString());
+                     ItemVersionData data) {
+    getAccessor(context)
+        .update(JsonUtil.object2Json(data.getInfo()), JsonUtil.object2Json(data.getRelations()),
+            space, itemId.toString(), versionId.toString());
   }
 
   @Override
@@ -57,9 +61,15 @@ public class VersionCassandraDao implements VersionDao {
 
   private ItemVersion createItemVersion(Row row) {
     ItemVersion itemVersion = new ItemVersion();
-    itemVersion.setId(row.getString(VersionField.VERSION_ID));
-    itemVersion.setBaseId(row.getString(VersionField.BASE_VERSION_ID));
-    itemVersion.setInfo(JsonUtil.json2Object(row.getString(VersionField.VERSION_INFO), Info.class));
+    itemVersion.setId(new Id(row.getString(VersionField.VERSION_ID)));
+    itemVersion.setBaseId(new Id(row.getString(VersionField.BASE_VERSION_ID)));
+    itemVersion.setData(new ItemVersionData());
+    itemVersion.getData()
+        .setInfo(JsonUtil.json2Object(row.getString(VersionField.INFO), Info.class));
+    itemVersion.getData()
+        .setRelations(JsonUtil.json2Object(row.getString(VersionField.RELATIONS),
+            new TypeToken<ArrayList<Relation>>() {
+            }.getType()));
     return itemVersion;
   }
 
@@ -70,22 +80,22 @@ public class VersionCassandraDao implements VersionDao {
   @Accessor
   interface VersionAccessor {
 
-    @Query("INSERT INTO version (space, item_id, version_id, base_version_id, version_info) " +
-        "VALUES (?, ?, ?, ?, ?)")
+    @Query("INSERT INTO version (space, item_id, version_id, base_version_id, info, relations) " +
+        "VALUES (?, ?, ?, ?, ?, ?)")
     void create(String space, String itemId, String versionId, String baseVersionId,
-                String versionInfo);
+                String info, String relations);
 
-    @Query("UPDATE version SET version_info=? WHERE space=? AND item_id=? AND version_id=?")
-    void update(String versionInfo, String space, String itemId, String versionId);
+    @Query("UPDATE version SET info=?, relations=? WHERE space=? AND item_id=? AND version_id=?")
+    void update(String info, String relations, String space, String itemId, String versionId);
 
     @Query("DELETE FROM version WHERE space=? AND item_id=? AND version_id=?")
     void delete(String space, String itemId, String versionId);
 
-    @Query("SELECT version_id, base_version_id, version_info FROM version " +
+    @Query("SELECT version_id, base_version_id, info, relations FROM version " +
         "WHERE space=? AND item_id=? AND version_id=?")
     ResultSet get(String space, String itemId, String versionId);
 
-    @Query("SELECT version_id, base_version_id, version_info FROM version " +
+    @Query("SELECT version_id, base_version_id, info, relations FROM version " +
         "WHERE space=? AND item_id=?")
     ResultSet list(String space, String itemId);
   }
@@ -93,7 +103,8 @@ public class VersionCassandraDao implements VersionDao {
   private static final class VersionField {
     private static final String VERSION_ID = "version_id";
     private static final String BASE_VERSION_ID = "base_version_id";
-    private static final String VERSION_INFO = "version_info";
+    private static final String INFO = "info";
+    private static final String RELATIONS = "relations";
   }
 
 }

@@ -19,9 +19,14 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
+import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.UserInfo;
 import org.amdocs.zusammen.datatypes.item.Info;
+import org.amdocs.zusammen.datatypes.item.ItemVersionData;
+import org.amdocs.zusammen.datatypes.item.Relation;
 import org.testng.annotations.Test;
+
+import java.util.Arrays;
 
 public class CassandraStateStoreTest {
   @Test
@@ -147,13 +152,16 @@ public class CassandraStateStoreTest {
 
   @Test
   public void testCreateItemVersion() throws Exception {
-    Info versionInfo = new Info();
-    versionInfo.addProperty("Name", "name_value");
-    versionInfo.addProperty("Desc", "desc_value");
+    Info info = new Info();
+    info.addProperty("Name", "name_value");
+    info.addProperty("Desc", "desc_value");
+    ItemVersionData data = new ItemVersionData();
+    data.setInfo(info);
+    data.setRelations(Arrays.asList(new Relation(), new Relation()));
 
     StateStoreImpl stateStore = new StateStoreImpl();
     SessionContext context = TestUtils.createSessionContext(new UserInfo("testUser"), "test");
     stateStore
-        .createItemVersion(context, new Id(), new Id(), new Id(), versionInfo);
+        .createItemVersion(context, new Id(), new Id(), new Id(), Space.PRIVATE, data);
   }
 }

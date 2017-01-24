@@ -19,11 +19,13 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
+import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
 import org.amdocs.zusammen.datatypes.item.ElementInfo;
 import org.amdocs.zusammen.datatypes.item.Info;
 import org.amdocs.zusammen.datatypes.item.Item;
 import org.amdocs.zusammen.datatypes.item.ItemVersion;
+import org.amdocs.zusammen.datatypes.item.ItemVersionData;
 import org.amdocs.zusammen.datatypes.workspace.WorkspaceInfo;
 import org.amdocs.zusammen.sdk.StateStore;
 
@@ -83,19 +85,20 @@ public class StateStoreImpl implements StateStore {
 
   @Override
   public void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
-                                Id versionId, Info versionInfo) {
+                                Id versionId, Space space, ItemVersionData data) {
 
-    versionStateStore.createItemVersion(context, itemId, baseVersionId, versionId, versionInfo);
+    versionStateStore.createItemVersion(context, itemId, baseVersionId, versionId, space, data);
   }
 
   @Override
-  public void updateItemVersion(SessionContext context, Id itemId, Id versionId, Info versionInfo) {
-    versionStateStore.updateItemVersion(context, itemId, versionId, versionInfo);
+  public void updateItemVersion(SessionContext context, Id itemId, Id versionId, Space space,
+                                ItemVersionData data) {
+    versionStateStore.updateItemVersion(context, itemId, versionId, space, data);
   }
 
   @Override
-  public void deleteItemVersion(SessionContext context, Id itemId, Id versionId) {
-    versionStateStore.deleteItemVersion(context, itemId, versionId);
+  public void deleteItemVersion(SessionContext context, Id itemId, Id versionId, Space space) {
+    versionStateStore.deleteItemVersion(context, itemId, versionId, space);
   }
 
   @Override
