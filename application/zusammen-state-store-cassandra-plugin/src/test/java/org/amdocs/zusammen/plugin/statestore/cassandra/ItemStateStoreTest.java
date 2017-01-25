@@ -132,24 +132,22 @@ public class ItemStateStoreTest {
 
   @Test
   public void testDeleteItem() throws Exception {
-    Item item = createItem("item1");
-    doReturn(Optional.of(item)).when(itemDaoMock).get(context, item.getId());
-
+    Id itemId = new Id();
     ItemVersion v1 = createItemVersion(new Id(), null, "v1");
     ItemVersion v2 = createItemVersion(new Id(), v1.getId(), "v2");
     ItemVersion v3 = createItemVersion(new Id(), v2.getId(), "v3");
     doReturn(Arrays.asList(v1, v2, v3))
-        .when(versionStateStore).listItemVersions(context, item.getId());
+        .when(versionStateStore).listItemVersions(context, itemId);
 
-    itemStateStore.deleteItem(context, item.getId());
+    itemStateStore.deleteItem(context, itemId);
 
-    verify(versionStateStore).listItemVersions(context, item.getId());
+    verify(versionStateStore).listItemVersions(context, itemId);
     verify(versionStateStore, times(3))
         .deleteItemVersion(anyObject(), anyObject(), anyObject(), anyObject());
-    verify(versionStateStore).deleteItemVersion(context, item.getId(), v1.getId(), Space.PRIVATE);
-    verify(versionStateStore).deleteItemVersion(context, item.getId(), v2.getId(), Space.PRIVATE);
-    verify(versionStateStore).deleteItemVersion(context, item.getId(), v2.getId(), Space.PRIVATE);
-    verify(itemDaoMock).delete(context, item.getId());
+    verify(versionStateStore).deleteItemVersion(context, itemId, v1.getId(), Space.PRIVATE);
+    verify(versionStateStore).deleteItemVersion(context, itemId, v2.getId(), Space.PRIVATE);
+    verify(versionStateStore).deleteItemVersion(context, itemId, v2.getId(), Space.PRIVATE);
+    verify(itemDaoMock).delete(context, itemId);
   }
 
   private Item createItem(String name) {

@@ -25,6 +25,8 @@ import org.amdocs.zusammen.datatypes.item.ItemVersionData;
 import org.amdocs.zusammen.datatypes.item.Relation;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepository;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.VersionDao;
+import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
+import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -40,8 +42,10 @@ import java.util.Optional;
 
 import static org.amdocs.zusammen.plugin.statestore.cassandra.TestUtils.createItemVersion;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class VersionStateStoreTest {
@@ -124,12 +128,22 @@ public class VersionStateStoreTest {
 
   @Test
   public void testCreatePrivateItemVersion() throws Exception {
-    testCreateItemVersion(Space.PRIVATE, USER);
+    testCreateItemVersion(Space.PRIVATE, USER, null);
+  }
+
+  @Test
+  public void testCreatePrivateItemVersionBasedOn() throws Exception {
+    testCreateItemVersion(Space.PRIVATE, USER, new Id());
   }
 
   @Test
   public void testCreatePublicItemVersion() throws Exception {
-    testCreateItemVersion(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE);
+    testCreateItemVersion(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE, null);
+  }
+
+  @Test
+  public void testCreatePublicItemVersionBasedOn() throws Exception {
+    testCreateItemVersion(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE, new Id());
   }
 
   @Test
@@ -152,16 +166,25 @@ public class VersionStateStoreTest {
     testDeleteItemVersion(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE);
   }
 
-  private void testCreateItemVersion(Space space, String spaceName) {
+  private void testCreateItemVersion(Space space, String spaceName, Id baseId) {
     Id itemId = new Id();
-    ItemVersion v1 = createItemVersion(new Id(), null, "v1");
+    ItemVersion v1 = createItemVersion(new Id(), baseId, "v1");
+    List<ElementEntity> baseVersionElements = mockVersionElements(spaceName, itemId, baseId);
+
     versionStateStore
-        .createItemVersion(context, itemId, v1.getBaseId(), v1.getId(), space, v1.getData());
+        .createItemVersion(context, itemId, baseId, v1.getId(), space, v1.getData());
 
     verify(versionDaoMock)
-        .create(context, spaceName, itemId, v1.getBaseId(), v1.getId(), v1.getData());
+        .create(context, spaceName, itemId, baseId, v1.getId(), v1.getData());
 
-    // TODO: 1/25/2017 test copy elements
+    if (baseId != null) {
+      baseVersionElements.forEach(element ->
+          verify(elementRepositoryMock).create(eq(context),
+              eq(new ElementEntityContext(spaceName, itemId, v1.getId())),
+              eq(element)));
+    } else {
+      verifyZeroInteractions(elementRepositoryMock);
+    }
   }
 
   private void testUpdateItemVersion(Space space, String spaceName) {
@@ -182,7 +205,25 @@ public class VersionStateStoreTest {
   }
 
   private void testDeleteItemVersion(Space space, String spaceName) {
-    // TODO: 1/25/2017
+    Id itemId = new Id();
+    Id versionId = new Id();
+
+    List<ElementEntity> versionElements = mockVersionElements(spaceName, itemId, versionId);
+    versionStateStore.deleteItemVersion(context, itemId, versionId, space);
+
+    versionElements.forEach(element ->
+        verify(elementRepositoryMock).delete(eq(context),
+            eq(new ElementEntityContext(spaceName, itemId, versionId)),
+            eq(element)));
+    verify(versionDaoMock).delete(context, spaceName, itemId, versionId);
   }
 
+  private List<ElementEntity> mockVersionElements(String spaceName, Id itemId, Id versionId) {
+    ElementEntity elm1 = new ElementEntity(new Id());
+    ElementEntity elm2 = new ElementEntity(new Id());
+    List<ElementEntity> baseVersionElements = Arrays.asList(elm1, elm2);
+    doReturn(baseVersionElements).when(elementRepositoryMock)
+        .list(eq(context), eq(new ElementEntityContext(spaceName, itemId, versionId)));
+    return baseVersionElements;
+  }
 }

@@ -18,11 +18,6 @@ import java.util.stream.Collectors;
 
 public class ItemCassandraDao implements ItemDao {
 
-  private static final class ItemField {
-    private static final String ITEM_ID = "item_id";
-    private static final String ITEM_INFO = "item_info";
-  }
-
   @Override
   public void create(SessionContext context, Id itemId, Info itemInfo) {
     update(context, itemId, itemInfo);
@@ -30,8 +25,7 @@ public class ItemCassandraDao implements ItemDao {
 
   @Override
   public void update(SessionContext context, Id itemId, Info itemInfo) {
-    getAccessor(context).
-        save(itemId.getValue(), JsonUtil.object2Json(itemInfo));
+    getAccessor(context).save(itemId.getValue(), JsonUtil.object2Json(itemInfo));
   }
 
   @Override
@@ -41,9 +35,7 @@ public class ItemCassandraDao implements ItemDao {
 
   @Override
   public Optional<Item> get(SessionContext context, Id itemId) {
-    Row row =
-        getAccessor(context).get(itemId.getValue())
-            .one();
+    Row row = getAccessor(context).get(itemId.getValue()).one();
     return row == null ? Optional.empty() : Optional.of(createItem(row));
   }
 
@@ -79,5 +71,10 @@ public class ItemCassandraDao implements ItemDao {
 
     @Query("SELECT item_id, item_info FROM item")
     ResultSet list();
+  }
+
+  private static final class ItemField {
+    private static final String ITEM_ID = "item_id";
+    private static final String ITEM_INFO = "item_info";
   }
 }
