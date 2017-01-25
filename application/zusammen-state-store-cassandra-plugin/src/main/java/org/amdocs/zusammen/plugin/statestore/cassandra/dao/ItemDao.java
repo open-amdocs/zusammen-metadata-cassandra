@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface ItemDao {
   void create(SessionContext context, Id itemId, Info itemInfo);
 
-  void save(SessionContext context, Id itemId, Info itemInfo);
+  void update(SessionContext context, Id itemId, Info itemInfo);
 
   void delete(SessionContext context, Id itemId);
 

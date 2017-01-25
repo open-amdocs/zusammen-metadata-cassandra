@@ -21,6 +21,11 @@ import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.UserInfo;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
 import org.amdocs.zusammen.datatypes.item.Info;
+import org.amdocs.zusammen.datatypes.item.ItemVersion;
+import org.amdocs.zusammen.datatypes.item.ItemVersionData;
+import org.amdocs.zusammen.datatypes.item.Relation;
+
+import java.util.Arrays;
 
 public class TestUtils {
 
@@ -31,7 +36,7 @@ public class TestUtils {
     return context;
   }
 
-  public static ElementContext createElementContext(Id itemId, Id versionId) {
+  static ElementContext createElementContext(Id itemId, Id versionId) {
     ElementContext elementContext = new ElementContext();
     elementContext.setItemId(itemId);
     elementContext.setVersionId(versionId);
@@ -44,5 +49,16 @@ public class TestUtils {
     info.addProperty("Name", "name_" + value);
     info.addProperty("Desc", "desc_" + value);
     return info;
+  }
+
+  static ItemVersion createItemVersion(Id id, Id baseId, String name) {
+    ItemVersion version = new ItemVersion();
+    version.setId(id);
+    version.setBaseId(baseId);
+    ItemVersionData data = new ItemVersionData();
+    data.setInfo(TestUtils.createInfo(name));
+    data.setRelations(Arrays.asList(new Relation(), new Relation()));
+    version.setData(data);
+    return version;
   }
 }

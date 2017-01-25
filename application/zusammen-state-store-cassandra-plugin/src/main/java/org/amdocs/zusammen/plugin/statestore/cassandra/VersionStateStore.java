@@ -53,7 +53,7 @@ class VersionStateStore {
                          Id versionId, Space space, ItemVersionData data) {
     String spaceName = getSpaceName(space, context);
 
-    getVersionDao(context).create(context, spaceName, itemId, versionId, baseVersionId, data);
+    getVersionDao(context).create(context, spaceName, itemId, baseVersionId, versionId, data);
     if (baseVersionId == null) {
       return;
     }
@@ -94,11 +94,11 @@ class VersionStateStore {
         .forEach(elementEntity -> elementRepository.delete(context, elementContext, elementEntity));
   }
 
-  VersionDao getVersionDao(SessionContext context) {
+  protected VersionDao getVersionDao(SessionContext context) {
     return VersionDaoFactory.getInstance().createInterface(context);
   }
 
-  private ElementRepository getElementRepository(SessionContext context) {
+  protected ElementRepository getElementRepository(SessionContext context) {
     return ElementRepositoryFactory.getInstance().createInterface(context);
   }
 

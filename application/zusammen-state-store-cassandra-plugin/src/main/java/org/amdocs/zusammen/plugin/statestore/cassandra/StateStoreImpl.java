@@ -34,9 +34,9 @@ import java.util.List;
 
 public class StateStoreImpl implements StateStore {
 
-  private final ItemStateStore itemStateStore = new ItemStateStore();
-  private final VersionStateStore versionStateStore = new VersionStateStore();
   private final ElementStateStore elementStateStore = new ElementStateStore();
+  private final VersionStateStore versionStateStore = new VersionStateStore();
+  private final ItemStateStore itemStateStore = new ItemStateStore(versionStateStore);
 
   @Override
   public Collection<Item> listItems(SessionContext context) {
@@ -59,8 +59,8 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public void saveItem(SessionContext context, Id itemId, Info itemInfo) {
-    itemStateStore.saveItem(context, itemId, itemInfo);
+  public void updateItem(SessionContext context, Id itemId, Info itemInfo) {
+    itemStateStore.updateItem(context, itemId, itemInfo);
   }
 
   @Override

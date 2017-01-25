@@ -18,14 +18,22 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
+import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.Info;
 import org.amdocs.zusammen.datatypes.item.Item;
+import org.amdocs.zusammen.datatypes.item.ItemVersion;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDao;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDaoFactory;
 
 import java.util.Collection;
 
 class ItemStateStore {
+
+  private VersionStateStore versionStateStore;
+
+  ItemStateStore(VersionStateStore versionStateStore) {
+    this.versionStateStore = versionStateStore;
+  }
 
   Collection<Item> listItems(SessionContext context) {
     return getItemDao(context).list(context);
@@ -43,15 +51,19 @@ class ItemStateStore {
     getItemDao(context).create(context, itemId, itemInfo);
   }
 
-  void saveItem(SessionContext context, Id itemId, Info itemInfo) {
-    getItemDao(context).save(context, itemId, itemInfo);
+  void updateItem(SessionContext context, Id itemId, Info itemInfo) {
+    getItemDao(context).update(context, itemId, itemInfo);
   }
 
   void deleteItem(SessionContext context, Id itemId) {
+    Collection<ItemVersion> versions = versionStateStore.listItemVersions(context, itemId);
+    versions.forEach(itemVersion ->
+        versionStateStore.deleteItemVersion(context, itemId, itemVersion.getId(), Space.PRIVATE));
+
     getItemDao(context).delete(context, itemId);
   }
 
-  private ItemDao getItemDao(SessionContext context) {
+  protected ItemDao getItemDao(SessionContext context) {
     return ItemDaoFactory.getInstance().createInterface(context);
   }
 }

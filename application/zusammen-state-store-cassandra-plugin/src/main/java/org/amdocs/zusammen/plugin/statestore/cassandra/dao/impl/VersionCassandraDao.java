@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 public class VersionCassandraDao implements VersionDao {
 
   @Override
-  public void create(SessionContext context, String space, Id itemId, Id versionId,
-                     Id baseVersionId, ItemVersionData data) {
+  public void create(SessionContext context, String space, Id itemId, Id baseVersionId,
+                     Id versionId, ItemVersionData data) {
     String baseVersion = baseVersionId != null ? baseVersionId.toString() : null;
 
     getAccessor(context)

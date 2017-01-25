@@ -36,9 +36,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -49,12 +49,16 @@ import static org.mockito.Mockito.when;
 
 public class ElementStateStoreTest {
   private static final String TENANT = "test";
+
   private static final String USER = "ElementStateStoreTest_user";
   private static final SessionContext context =
       TestUtils.createSessionContext(new UserInfo(USER), TENANT);
+  private static final ElementContext elementContext =
+      TestUtils.createElementContext(new Id(), new Id());
 
   @Spy
   private ElementStateStore elementStateStore;
+
   @Mock
   private ElementRepository elementRepositoryMock;
   @Captor
@@ -67,17 +71,28 @@ public class ElementStateStoreTest {
   }
 
   @Test
+  public void testListRootElements() throws Exception {
+    testListElements(null, StateStoreConstants.ROOT_ELEMENTS_PARENT_ID);
+  }
+
+  @Test
+  public void testListElements() throws Exception {
+    Id elementId = new Id();
+    testListElements(elementId, elementId);
+  }
+
+  @Test
   public void testIsElementExist() throws Exception {
-    ElementEntity retrievedElement = getRetrievedElement();
+    ElementEntity retrievedElement = getRetrievedElement(new Id(), new Id(), "elm1");
 
     doReturn(Optional.of(retrievedElement))
         .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
 
-    ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
+
     boolean elementExist =
         elementStateStore.isElementExist(context, elementContext, retrievedElement.getId());
 
-    Assert.assertEquals(elementExist, true);
+    Assert.assertTrue(elementExist);
   }
 
   @Test
@@ -88,12 +103,12 @@ public class ElementStateStoreTest {
     ElementContext elementContext = TestUtils.createElementContext(new Id(), new Id());
     boolean elementExist = elementStateStore.isElementExist(context, elementContext, new Id());
 
-    Assert.assertEquals(elementExist, false);
+    Assert.assertFalse(elementExist);
   }
 
   @Test
   public void testGetElement() throws Exception {
-    ElementEntity retrievedElement = getRetrievedElement();
+    ElementEntity retrievedElement = getRetrievedElement(new Id(), new Id(), "elm1");
 
     doReturn(Optional.of(retrievedElement))
         .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
@@ -103,13 +118,7 @@ public class ElementStateStoreTest {
         elementStateStore.getElement(context, elementContext, retrievedElement.getId());
 
     Assert.assertNotNull(element);
-    Assert.assertEquals(element.getId(), retrievedElement.getId());
-    Assert.assertEquals(element.getInfo(), retrievedElement.getInfo());
-    Assert.assertEquals(element.getRelations(), retrievedElement.getRelations());
-    Assert
-        .assertEquals(element.getSubElements().size(), retrievedElement.getSubElementIds().size());
-    element.getSubElements()
-        .forEach(subElement -> retrievedElement.getSubElementIds().contains(subElement.getId()));
+    assertElementEquals(retrievedElement, element);
   }
 
   @Test
@@ -132,16 +141,12 @@ public class ElementStateStoreTest {
     elementStateStore.createElement(context, elementInfo);
 
     verify(elementRepositoryMock).create(anyObject(), anyObject(), elementEntityCaptor.capture());
-
-    Assert.assertEquals(elementEntityCaptor.getValue().getId(), elementInfo.getId());
-    Assert.assertEquals(elementEntityCaptor.getValue().getParentId(), elementInfo.getParentId());
-    Assert.assertEquals(elementEntityCaptor.getValue().getInfo(), elementInfo.getInfo());
-    Assert.assertEquals(elementEntityCaptor.getValue().getRelations(), elementInfo.getRelations());
+    assertElementEquals(elementEntityCaptor.getValue(), elementInfo);
   }
 
   @Test
   public void testUpdateElement() throws Exception {
-    ElementEntity retrievedElement = getRetrievedElement();
+    ElementEntity retrievedElement = getRetrievedElement(new Id(), new Id(), "elm1");
     doReturn(Optional.of(retrievedElement))
         .when(elementRepositoryMock).get(anyObject(), anyObject(), anyObject());
 
@@ -153,16 +158,13 @@ public class ElementStateStoreTest {
     elementStateStore.updateElement(context, elementInfo);
 
     verify(elementRepositoryMock).update(anyObject(), anyObject(), elementEntityCaptor.capture());
-
-    Assert.assertEquals(elementEntityCaptor.getValue().getId(), elementInfo.getId());
-    Assert.assertEquals(elementEntityCaptor.getValue().getParentId(), elementInfo.getParentId());
-    Assert.assertEquals(elementEntityCaptor.getValue().getInfo(), elementInfo.getInfo());
-    Assert.assertEquals(elementEntityCaptor.getValue().getRelations(), elementInfo.getRelations());
+    assertElementEquals(elementEntityCaptor.getValue(), elementInfo);
   }
 
   @Test
   public void testDeleteElement() throws Exception {
-    ElementEntity retrievedElement = getRetrievedElement();
+    ElementEntity retrievedElement =
+        getRetrievedElement(new Id(), new Id(), "elm1", new Id(), new Id());
     ElementInfo elementInfo =
         new ElementInfo(new Id(), new Id(), retrievedElement.getId(),
             retrievedElement.getParentId());
@@ -193,16 +195,67 @@ public class ElementStateStoreTest {
             .delete(eq(context), eq(elementEntityContext), eq(subElement)));
   }
 
-  private ElementEntity getRetrievedElement() {
-    ElementEntity elementEntity = new ElementEntity(new Id());
-    elementEntity.setParentId(new Id());
-    elementEntity.setNamespace(new Namespace(new Namespace(), elementEntity.getId()));
-    elementEntity.setInfo(TestUtils.createInfo("elm1"));
+  private void testListElements(Id requestedElementId, Id stateStoreElementId) {
+    ElementEntity elm1 =
+        getRetrievedElement(new Id(), stateStoreElementId, "elm1");
+    ElementEntity elm2 =
+        getRetrievedElement(new Id(), stateStoreElementId, "elm2");
+    ElementEntity parentElm =
+        getRetrievedElement(stateStoreElementId, null, null, elm1.getId(),
+            elm2.getId());
+    doReturn(Optional.of(parentElm)).when(elementRepositoryMock)
+        .get(eq(context), eq(new ElementEntityContext(USER, elementContext)), eq(parentElm));
+    doReturn(Optional.of(elm1)).when(elementRepositoryMock)
+        .get(eq(context), eq(new ElementEntityContext(USER, elementContext)), eq(elm1));
+    doReturn(Optional.of(elm2)).when(elementRepositoryMock)
+        .get(eq(context), eq(new ElementEntityContext(USER, elementContext)), eq(elm2));
+
+    Collection<ElementInfo> elements =
+        elementStateStore.listElements(context, elementContext, requestedElementId);
+
+    Assert.assertEquals(elements.size(), 2);
+
+    elm1.setParentId(requestedElementId);
+    elm2.setParentId(requestedElementId);
+
+    int foundElementCounter = 0;
+    for (ElementInfo elementInfo : elements) {
+      if (elementInfo.getId().equals(elm1.getId())) {
+        assertElementEquals(elm1, elementInfo);
+        foundElementCounter++;
+      } else if (elementInfo.getId().equals(elm2.getId())) {
+        assertElementEquals(elm2, elementInfo);
+        foundElementCounter++;
+      }
+    }
+    Assert.assertEquals(foundElementCounter, 2);
+  }
+
+  private void assertElementEquals(ElementEntity expected, ElementInfo actual) {
+    Assert.assertEquals(actual.getId(), expected.getId());
+    Assert.assertEquals(actual.getParentId(), expected.getParentId());
+    Assert.assertEquals(actual.getNamespace(), expected.getNamespace());
+    Assert.assertEquals(actual.getInfo(), expected.getInfo());
+    Assert.assertEquals(actual.getRelations(), expected.getRelations());
+    Assert
+        .assertEquals(actual.getSubElements().size(), expected.getSubElementIds().size());
+    actual.getSubElements()
+        .forEach(subElement -> expected.getSubElementIds().contains(subElement.getId()));
+  }
+
+  private ElementEntity getRetrievedElement(Id id, Id parentId, String name, Id... subIds) {
+    ElementEntity elementEntity = new ElementEntity(id);
+    elementEntity.setParentId(parentId);
+    elementEntity.setNamespace(parentId == null ? new Namespace() : new Namespace(new Namespace()
+        , parentId));
+    elementEntity.setInfo(TestUtils.createInfo(name));
     elementEntity.setRelations(Arrays.asList(createRelation("r1"), createRelation("r2")));
-    Set<Id> subElementIds = new HashSet<>();
-    subElementIds.add(new Id());
-    subElementIds.add(new Id());
-    elementEntity.setSubElementIds(subElementIds);
+    if (subIds != null) {
+      elementEntity.setSubElementIds(new HashSet<>());
+      for (Id subId : subIds) {
+        elementEntity.getSubElementIds().add(subId);
+      }
+    }
     return elementEntity;
   }
 

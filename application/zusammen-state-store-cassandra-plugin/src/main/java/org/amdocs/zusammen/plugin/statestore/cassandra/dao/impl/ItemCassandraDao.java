@@ -25,38 +25,44 @@ public class ItemCassandraDao implements ItemDao {
 
   @Override
   public void create(SessionContext context, Id itemId, Info itemInfo) {
-    save(context, itemId, itemInfo);
+    update(context, itemId, itemInfo);
   }
 
   @Override
-  public void save(SessionContext context, Id itemId, Info itemInfo) {
-    CassandraDaoUtils.getAccessor(context, ItemAccessor.class).
-        save(itemId.getValue().toString(), JsonUtil.object2Json(itemInfo));
+  public void update(SessionContext context, Id itemId, Info itemInfo) {
+    getAccessor(context).
+        save(itemId.getValue(), JsonUtil.object2Json(itemInfo));
   }
 
   @Override
   public void delete(SessionContext context, Id itemId) {
-    CassandraDaoUtils.getAccessor(context, ItemAccessor.class).delete(itemId.getValue().toString());
+    getAccessor(context).delete(itemId.getValue());
   }
 
   @Override
   public Optional<Item> get(SessionContext context, Id itemId) {
-    Row row = CassandraDaoUtils.getAccessor(context, ItemAccessor.class).get(itemId.getValue().toString()).one();
+    Row row =
+        getAccessor(context).get(itemId.getValue())
+            .one();
     return row == null ? Optional.empty() : Optional.of(createItem(row));
   }
 
   @Override
   public List<Item> list(SessionContext context) {
-    List<Row> rows = CassandraDaoUtils.getAccessor(context, ItemAccessor.class).list().all();
+    List<Row> rows = getAccessor(context).list().all();
     return rows == null ? new ArrayList<>()
         : rows.stream().map(this::createItem).collect(Collectors.toList());
   }
 
   private Item createItem(Row row) {
     Item item = new Item();
-    item.setId(row.getString(ItemField.ITEM_ID));
+    item.setId(new Id(row.getString(ItemField.ITEM_ID)));
     item.setInfo(JsonUtil.json2Object(row.getString(ItemField.ITEM_INFO), Info.class));
     return item;
+  }
+
+  private ItemAccessor getAccessor(SessionContext context) {
+    return CassandraDaoUtils.getAccessor(context, ItemAccessor.class);
   }
 
   @Accessor

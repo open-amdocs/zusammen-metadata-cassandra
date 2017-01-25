@@ -14,7 +14,7 @@ public interface VersionDao {
 
   Optional<ItemVersion> get(SessionContext context, String space, Id itemId, Id versionId);
 
-  void create(SessionContext context, String space, Id itemId, Id versionId, Id baseVersionId,
+  void create(SessionContext context, String space, Id itemId, Id baseVersionId, Id versionId,
               ItemVersionData data);
 
   void update(SessionContext context, String space, Id itemId, Id versionId, ItemVersionData data);
