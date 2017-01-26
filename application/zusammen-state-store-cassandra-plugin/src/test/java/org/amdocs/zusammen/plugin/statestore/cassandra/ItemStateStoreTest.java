@@ -136,17 +136,18 @@ public class ItemStateStoreTest {
     ItemVersion v1 = createItemVersion(new Id(), null, "v1");
     ItemVersion v2 = createItemVersion(new Id(), v1.getId(), "v2");
     ItemVersion v3 = createItemVersion(new Id(), v2.getId(), "v3");
+    Space space = Space.PRIVATE;
     doReturn(Arrays.asList(v1, v2, v3))
-        .when(versionStateStore).listItemVersions(context, itemId);
+        .when(versionStateStore).listItemVersions(context, space, itemId);
 
     itemStateStore.deleteItem(context, itemId);
 
-    verify(versionStateStore).listItemVersions(context, itemId);
+    verify(versionStateStore).listItemVersions(context, space, itemId);
     verify(versionStateStore, times(3))
         .deleteItemVersion(anyObject(), anyObject(), anyObject(), anyObject());
-    verify(versionStateStore).deleteItemVersion(context, itemId, v1.getId(), Space.PRIVATE);
-    verify(versionStateStore).deleteItemVersion(context, itemId, v2.getId(), Space.PRIVATE);
-    verify(versionStateStore).deleteItemVersion(context, itemId, v2.getId(), Space.PRIVATE);
+    verify(versionStateStore).deleteItemVersion(context, Space.PRIVATE, itemId, v1.getId());
+    verify(versionStateStore).deleteItemVersion(context, Space.PRIVATE, itemId, v2.getId());
+    verify(versionStateStore).deleteItemVersion(context, Space.PRIVATE, itemId, v2.getId());
     verify(itemDaoMock).delete(context, itemId);
   }
 

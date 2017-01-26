@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 class StateStoreUtil {
 
-  static String getSpaceName(Space space, SessionContext context) {
+  static String getSpaceName(SessionContext context, Space space) {
     switch (space) {
       case PUBLIC:
         return StateStoreConstants.PUBLIC_SPACE;

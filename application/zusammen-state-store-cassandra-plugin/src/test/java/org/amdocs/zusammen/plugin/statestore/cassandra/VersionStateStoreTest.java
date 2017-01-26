@@ -70,28 +70,23 @@ public class VersionStateStoreTest {
   }
 
   @Test
-  public void testListItemVersions() throws Exception {
-    Id itemId = new Id();
-    ItemVersion v1 = createItemVersion(new Id(), null, "v1");
-    ItemVersion v2 = createItemVersion(new Id(), v1.getId(), "v2");
-    ItemVersion v3 = createItemVersion(new Id(), v2.getId(), "v3");
-    List<ItemVersion> retrievedVersions = Arrays.asList(v1, v2, v3);
-    doReturn(retrievedVersions).when(versionDaoMock).list(context, USER, itemId);
-
-    Collection<ItemVersion> itemVersions = versionStateStore.listItemVersions(context, itemId);
-    Assert.assertEquals(itemVersions, retrievedVersions);
+  public void testListPrivateItemVersions() throws Exception {
+    testListItemVersions(Space.PRIVATE, USER);
   }
 
   @Test
-  public void testIsItemVersionExist() throws Exception {
-    Id itemId = new Id();
-    ItemVersion retrievedVersion = createItemVersion(new Id(), null, "v1");
-    doReturn(Optional.of(retrievedVersion)).when(versionDaoMock)
-        .get(context, USER, itemId, retrievedVersion.getId());
+  public void testListPublicItemVersions() throws Exception {
+    testListItemVersions(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE);
+  }
 
-    boolean itemExist =
-        versionStateStore.isItemVersionExist(context, itemId, retrievedVersion.getId());
-    Assert.assertTrue(itemExist);
+  @Test
+  public void testIsPrivateItemVersionExist() throws Exception {
+    testIsItemVersionExist(Space.PRIVATE, USER);
+  }
+
+  @Test
+  public void testIsPublicItemVersionExist() throws Exception {
+    testIsItemVersionExist(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE);
   }
 
   @Test
@@ -100,21 +95,21 @@ public class VersionStateStoreTest {
     Id versionId = new Id();
     doReturn(Optional.empty()).when(versionDaoMock).get(context, USER, itemId, versionId);
 
-    boolean itemExist = versionStateStore.isItemVersionExist(context, itemId, versionId);
+    boolean itemExist =
+        versionStateStore.isItemVersionExist(context, Space.PRIVATE, itemId, versionId);
     Assert.assertFalse(itemExist);
   }
 
   @Test
-  public void testGetItemVersion() throws Exception {
-    Id itemId = new Id();
-    ItemVersion retrievedVersion = createItemVersion(new Id(), null, "v1");
-    doReturn(Optional.of(retrievedVersion)).when(versionDaoMock)
-        .get(context, USER, itemId, retrievedVersion.getId());
-
-    ItemVersion itemVersion =
-        versionStateStore.getItemVersion(context, itemId, retrievedVersion.getId());
-    Assert.assertEquals(itemVersion, retrievedVersion);
+  public void testGetPrivateItemVersion() throws Exception {
+    testGetItemVersion(Space.PRIVATE, USER);
   }
+
+  @Test
+  public void testGetPublicItemVersion() throws Exception {
+    testGetItemVersion(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE);
+  }
+
 
   @Test
   public void testGetNonExistingItemVersion() throws Exception {
@@ -122,7 +117,8 @@ public class VersionStateStoreTest {
     Id versionId = new Id();
     doReturn(Optional.empty()).when(versionDaoMock).get(context, USER, itemId, versionId);
 
-    ItemVersion itemVersion = versionStateStore.getItemVersion(context, itemId, versionId);
+    ItemVersion itemVersion =
+        versionStateStore.getItemVersion(context, Space.PRIVATE, itemId, versionId);
     Assert.assertNull(itemVersion);
   }
 
@@ -166,13 +162,48 @@ public class VersionStateStoreTest {
     testDeleteItemVersion(Space.PUBLIC, StateStoreConstants.PUBLIC_SPACE);
   }
 
+  private void testIsItemVersionExist(Space space, String spaceName) {
+    Id itemId = new Id();
+    ItemVersion retrievedVersion = createItemVersion(new Id(), null, "v1");
+    doReturn(Optional.of(retrievedVersion)).when(versionDaoMock)
+        .get(context, spaceName, itemId, retrievedVersion.getId());
+
+    boolean itemExist =
+        versionStateStore.isItemVersionExist(context, space, itemId, retrievedVersion.getId());
+    Assert.assertTrue(itemExist);
+  }
+
+  public void testGetItemVersion(Space space, String spaceName) throws Exception {
+    Id itemId = new Id();
+    ItemVersion retrievedVersion = createItemVersion(new Id(), null, "v1");
+    doReturn(Optional.of(retrievedVersion)).when(versionDaoMock)
+        .get(context, spaceName, itemId, retrievedVersion.getId());
+
+    ItemVersion itemVersion =
+        versionStateStore.getItemVersion(context, space, itemId, retrievedVersion.getId());
+    Assert.assertEquals(itemVersion, retrievedVersion);
+  }
+
+  private void testListItemVersions(Space space, String spaceName) {
+    Id itemId = new Id();
+    ItemVersion v1 = createItemVersion(new Id(), null, "v1");
+    ItemVersion v2 = createItemVersion(new Id(), v1.getId(), "v2");
+    ItemVersion v3 = createItemVersion(new Id(), v2.getId(), "v3");
+    List<ItemVersion> retrievedVersions = Arrays.asList(v1, v2, v3);
+    doReturn(retrievedVersions).when(versionDaoMock).list(context, spaceName, itemId);
+
+    Collection<ItemVersion> itemVersions =
+        versionStateStore.listItemVersions(context, space, itemId);
+    Assert.assertEquals(itemVersions, retrievedVersions);
+  }
+
   private void testCreateItemVersion(Space space, String spaceName, Id baseId) {
     Id itemId = new Id();
     ItemVersion v1 = createItemVersion(new Id(), baseId, "v1");
     List<ElementEntity> baseVersionElements = mockVersionElements(spaceName, itemId, baseId);
 
     versionStateStore
-        .createItemVersion(context, itemId, baseId, v1.getId(), space, v1.getData());
+        .createItemVersion(context, space, itemId, baseId, v1.getId(), v1.getData());
 
     verify(versionDaoMock)
         .create(context, spaceName, itemId, baseId, v1.getId(), v1.getData());
@@ -198,7 +229,7 @@ public class VersionStateStoreTest {
     updatedData.setRelations(
         Arrays.asList(new Relation(), new Relation(), new Relation(), new Relation()));
     versionStateStore.updateItemVersion(
-        context, itemId, retrievedVersion.getId(), space, updatedData);
+        context, space, itemId, retrievedVersion.getId(), updatedData);
 
     verify(versionDaoMock)
         .update(context, spaceName, itemId, retrievedVersion.getId(), updatedData);
@@ -209,7 +240,7 @@ public class VersionStateStoreTest {
     Id versionId = new Id();
 
     List<ElementEntity> versionElements = mockVersionElements(spaceName, itemId, versionId);
-    versionStateStore.deleteItemVersion(context, itemId, versionId, space);
+    versionStateStore.deleteItemVersion(context, space, itemId, versionId);
 
     versionElements.forEach(element ->
         verify(elementRepositoryMock).delete(eq(context),

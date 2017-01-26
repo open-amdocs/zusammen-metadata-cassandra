@@ -69,36 +69,35 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public Collection<ItemVersion> listItemVersions(SessionContext context, Id itemId) {
-    return versionStateStore.listItemVersions(context, itemId);
+  public Collection<ItemVersion> listItemVersions(SessionContext context, Space space, Id itemId) {
+    return versionStateStore.listItemVersions(context, space, itemId);
   }
 
   @Override
-  public boolean isItemVersionExist(SessionContext context, Id itemId, Id versionId) {
-    return versionStateStore.isItemVersionExist(context, itemId, versionId);
+  public boolean isItemVersionExist(SessionContext context, Space space, Id itemId, Id versionId) {
+    return versionStateStore.isItemVersionExist(context, space, itemId, versionId);
   }
 
   @Override
-  public ItemVersion getItemVersion(SessionContext context, Id itemId, Id versionId) {
-    return versionStateStore.getItemVersion(context, itemId, versionId);
+  public ItemVersion getItemVersion(SessionContext context, Space space, Id itemId, Id versionId) {
+    return versionStateStore.getItemVersion(context, space, itemId, versionId);
   }
 
   @Override
-  public void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
-                                Id versionId, Space space, ItemVersionData data) {
-
-    versionStateStore.createItemVersion(context, itemId, baseVersionId, versionId, space, data);
+  public void createItemVersion(SessionContext context, Space space, Id itemId, Id baseVersionId,
+                                Id versionId, ItemVersionData data) {
+    versionStateStore.createItemVersion(context, space, itemId, baseVersionId, versionId, data);
   }
 
   @Override
-  public void updateItemVersion(SessionContext context, Id itemId, Id versionId, Space space,
+  public void updateItemVersion(SessionContext context, Space space, Id itemId, Id versionId,
                                 ItemVersionData data) {
-    versionStateStore.updateItemVersion(context, itemId, versionId, space, data);
+    versionStateStore.updateItemVersion(context, space, itemId, versionId, data);
   }
 
   @Override
-  public void deleteItemVersion(SessionContext context, Id itemId, Id versionId, Space space) {
-    versionStateStore.deleteItemVersion(context, itemId, versionId, space);
+  public void deleteItemVersion(SessionContext context, Space space, Id itemId, Id versionId) {
+    versionStateStore.deleteItemVersion(context, space, itemId, versionId);
   }
 
   @Override

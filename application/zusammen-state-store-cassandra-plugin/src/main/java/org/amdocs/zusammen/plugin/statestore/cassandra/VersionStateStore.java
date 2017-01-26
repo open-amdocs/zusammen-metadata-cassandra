@@ -30,28 +30,27 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityCo
 
 import java.util.Collection;
 
-import static org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreUtil.getPrivateSpaceName;
 import static org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreUtil.getSpaceName;
 
 class VersionStateStore {
 
-  Collection<ItemVersion> listItemVersions(SessionContext context, Id itemId) {
-    return getVersionDao(context).list(context, getPrivateSpaceName(context), itemId);
+  Collection<ItemVersion> listItemVersions(SessionContext context, Space space, Id itemId) {
+    return getVersionDao(context).list(context, getSpaceName(context, space), itemId);
   }
 
-  boolean isItemVersionExist(SessionContext context, Id itemId, Id versionId) {
-    return getVersionDao(context).get(context, getPrivateSpaceName(context), itemId, versionId)
+  boolean isItemVersionExist(SessionContext context, Space space, Id itemId, Id versionId) {
+    return getVersionDao(context).get(context, getSpaceName(context, space), itemId, versionId)
         .isPresent();
   }
 
-  ItemVersion getItemVersion(SessionContext context, Id itemId, Id versionId) {
-    String space = getPrivateSpaceName(context);
-    return getVersionDao(context).get(context, space, itemId, versionId).orElse(null);
+  ItemVersion getItemVersion(SessionContext context, Space space, Id itemId, Id versionId) {
+    return getVersionDao(context).get(context, getSpaceName(context, space), itemId, versionId)
+        .orElse(null);
   }
 
-  void createItemVersion(SessionContext context, Id itemId, Id baseVersionId,
-                         Id versionId, Space space, ItemVersionData data) {
-    String spaceName = getSpaceName(space, context);
+  void createItemVersion(SessionContext context, Space space, Id itemId, Id baseVersionId,
+                         Id versionId, ItemVersionData data) {
+    String spaceName = getSpaceName(context, space);
 
     getVersionDao(context).create(context, spaceName, itemId, baseVersionId, versionId, data);
     if (baseVersionId == null) {
@@ -60,14 +59,14 @@ class VersionStateStore {
     copyElements(context, spaceName, itemId, baseVersionId, versionId);
   }
 
-  void updateItemVersion(SessionContext context, Id itemId, Id versionId, Space space,
+  void updateItemVersion(SessionContext context, Space space, Id itemId, Id versionId,
                          ItemVersionData data) {
     getVersionDao(context)
-        .update(context, getSpaceName(space, context), itemId, versionId, data);
+        .update(context, getSpaceName(context, space), itemId, versionId, data);
   }
 
-  void deleteItemVersion(SessionContext context, Id itemId, Id versionId, Space space) {
-    String spaceName = getSpaceName(space, context);
+  void deleteItemVersion(SessionContext context, Space space, Id itemId, Id versionId) {
+    String spaceName = getSpaceName(context, space);
 
     deleteElements(context, spaceName, itemId, versionId);
     getVersionDao(context).delete(context, spaceName, itemId, versionId);

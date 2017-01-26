@@ -162,6 +162,6 @@ public class CassandraStateStoreTest {
     StateStoreImpl stateStore = new StateStoreImpl();
     SessionContext context = TestUtils.createSessionContext(new UserInfo("testUser"), "test");
     stateStore
-        .createItemVersion(context, new Id(), new Id(), new Id(), Space.PRIVATE, data);
+        .createItemVersion(context, Space.PRIVATE, new Id(), new Id(), new Id(), data);
   }
 }

@@ -56,9 +56,10 @@ class ItemStateStore {
   }
 
   void deleteItem(SessionContext context, Id itemId) {
-    Collection<ItemVersion> versions = versionStateStore.listItemVersions(context, itemId);
+    Collection<ItemVersion> versions =
+        versionStateStore.listItemVersions(context, Space.PRIVATE, itemId);
     versions.forEach(itemVersion ->
-        versionStateStore.deleteItemVersion(context, itemId, itemVersion.getId(), Space.PRIVATE));
+        versionStateStore.deleteItemVersion(context, Space.PRIVATE, itemId, itemVersion.getId()));
 
     getItemDao(context).delete(context, itemId);
   }

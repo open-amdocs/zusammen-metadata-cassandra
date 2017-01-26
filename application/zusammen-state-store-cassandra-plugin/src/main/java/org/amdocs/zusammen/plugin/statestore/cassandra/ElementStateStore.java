@@ -74,7 +74,7 @@ class ElementStateStore {
   void createElement(SessionContext context, ElementInfo elementInfo) {
     getElementRepository(context)
         .create(context,
-            new ElementEntityContext(getSpaceName(elementInfo.getSpace(), context),
+            new ElementEntityContext(getSpaceName(context, elementInfo.getSpace()),
                 elementInfo.getItemId(), elementInfo.getVersionId()),
             StateStoreUtil.getElementEntity(elementInfo));
   }
@@ -82,7 +82,7 @@ class ElementStateStore {
   void updateElement(SessionContext context, ElementInfo elementInfo) {
     getElementRepository(context)
         .update(context,
-            new ElementEntityContext(getSpaceName(elementInfo.getSpace(), context),
+            new ElementEntityContext(getSpaceName(context, elementInfo.getSpace()),
                 elementInfo.getItemId(), elementInfo.getVersionId()),
             StateStoreUtil.getElementEntity(elementInfo));
   }
@@ -90,7 +90,7 @@ class ElementStateStore {
   void deleteElement(SessionContext context, ElementInfo elementInfo) {
     deleteElementHierarchy(getElementRepository(context),
         context,
-        new ElementEntityContext(getSpaceName(elementInfo.getSpace(), context),
+        new ElementEntityContext(getSpaceName(context, elementInfo.getSpace()),
             elementInfo.getItemId(), elementInfo.getVersionId()),
         StateStoreUtil.getElementEntity(elementInfo));
   }
