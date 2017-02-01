@@ -55,7 +55,7 @@ class StateStoreUtil {
 
   static ElementInfo getElementInfo(ElementEntityContext elementEntityContext, ElementEntity
       elementEntity) {
-    Id parentId = elementEntity.getParentId() == StateStoreConstants.ROOT_ELEMENTS_PARENT_ID
+    Id parentId = StateStoreConstants.ROOT_ELEMENTS_PARENT_ID.equals(elementEntity.getParentId())
         ? null
         : elementEntity.getParentId();
     ElementInfo elementInfo = new ElementInfo(elementEntityContext.getItemId(),
