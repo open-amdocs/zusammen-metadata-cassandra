@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/open-amdocs/zusammen-metadata-cassandra.svg?branch=master)](https://travis-ci.org/open-amdocs/zusammen-metadata-cassandra)
+
 ![Zusammen - Collaboration made easy](https://raw.githubusercontent.com/open-amdocs/zusammen/master/docs/images/zusammen_logo_final_888px.png)
 # zusammen-metadata-cassandra
 
