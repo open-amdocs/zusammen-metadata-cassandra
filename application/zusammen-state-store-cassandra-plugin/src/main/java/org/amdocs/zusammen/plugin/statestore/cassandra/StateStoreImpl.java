@@ -21,22 +21,21 @@ import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
-import org.amdocs.zusammen.datatypes.item.ElementInfo;
 import org.amdocs.zusammen.datatypes.item.Info;
 import org.amdocs.zusammen.datatypes.item.Item;
 import org.amdocs.zusammen.datatypes.item.ItemVersion;
 import org.amdocs.zusammen.datatypes.item.ItemVersionData;
 import org.amdocs.zusammen.datatypes.workspace.WorkspaceInfo;
-import org.amdocs.zusammen.sdk.StateStore;
+import org.amdocs.zusammen.sdk.state.StateStore;
+import org.amdocs.zusammen.sdk.state.types.StateElement;
 
 import java.util.Collection;
 import java.util.List;
 
 public class StateStoreImpl implements StateStore {
-
-  private final ElementStateStore elementStateStore = new ElementStateStore();
-  private final VersionStateStore versionStateStore = new VersionStateStore();
-  private final ItemStateStore itemStateStore = new ItemStateStore(versionStateStore);
+  private ElementStateStore elementStateStore = new ElementStateStore();
+  private VersionStateStore versionStateStore = new VersionStateStore();
+  private ItemStateStore itemStateStore = new ItemStateStore(versionStateStore);
 
   @Override
   public Collection<Item> listItems(SessionContext context) {
@@ -101,8 +100,8 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public Collection<ElementInfo> listElements(SessionContext context,
-                                              ElementContext elementContext, Id elementId) {
+  public Collection<StateElement> listElements(SessionContext context,
+                                               ElementContext elementContext, Id elementId) {
     return elementStateStore.listElements(context, elementContext, elementId);
   }
 
@@ -113,24 +112,24 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public ElementInfo getElement(SessionContext context, ElementContext elementContext,
-                                Id elementId) {
+  public StateElement getElement(SessionContext context, ElementContext elementContext,
+                                 Id elementId) {
     return elementStateStore.getElement(context, elementContext, elementId);
   }
 
   @Override
-  public void createElement(SessionContext context, ElementInfo elementInfo) {
-    elementStateStore.createElement(context, elementInfo);
+  public void createElement(SessionContext context, StateElement element) {
+    elementStateStore.createElement(context, element);
   }
 
   @Override
-  public void updateElement(SessionContext context, ElementInfo elementInfo) {
-    elementStateStore.updateElement(context, elementInfo);
+  public void updateElement(SessionContext context, StateElement element) {
+    elementStateStore.updateElement(context, element);
   }
 
   @Override
-  public void deleteElement(SessionContext context, ElementInfo elementInfo) {
-    elementStateStore.deleteElement(context, elementInfo);
+  public void deleteElement(SessionContext context, StateElement element) {
+    elementStateStore.deleteElement(context, element);
   }
 
   @Override

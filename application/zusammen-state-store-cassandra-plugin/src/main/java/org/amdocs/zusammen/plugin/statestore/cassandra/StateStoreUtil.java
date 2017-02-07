@@ -19,11 +19,9 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.Space;
-import org.amdocs.zusammen.datatypes.item.ElementInfo;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
-
-import java.util.stream.Collectors;
+import org.amdocs.zusammen.sdk.state.types.StateElement;
 
 class StateStoreUtil {
 
@@ -42,32 +40,29 @@ class StateStoreUtil {
     return context.getUser().getUserName();
   }
 
-  static ElementEntity getElementEntity(ElementInfo elementInfo) {
-    ElementEntity elementEntity = new ElementEntity(elementInfo.getId());
-    elementEntity.setNamespace(elementInfo.getNamespace());
-    elementEntity.setParentId(elementInfo.getParentId() == null
+  static ElementEntity getElementEntity(StateElement element) {
+    ElementEntity elementEntity = new ElementEntity(element.getId());
+    elementEntity.setNamespace(element.getNamespace());
+    elementEntity.setParentId(element.getParentId() == null
         ? StateStoreConstants.ROOT_ELEMENTS_PARENT_ID
-        : elementInfo.getParentId());
-    elementEntity.setInfo(elementInfo.getInfo());
-    elementEntity.setRelations(elementInfo.getRelations());
+        : element.getParentId());
+    elementEntity.setInfo(element.getInfo());
+    elementEntity.setRelations(element.getRelations());
     return elementEntity;
   }
 
-  static ElementInfo getElementInfo(ElementEntityContext elementEntityContext, ElementEntity
+  static StateElement getStateElement(ElementEntityContext elementEntityContext, ElementEntity
       elementEntity) {
     Id parentId = StateStoreConstants.ROOT_ELEMENTS_PARENT_ID.equals(elementEntity.getParentId())
         ? null
         : elementEntity.getParentId();
-    ElementInfo elementInfo = new ElementInfo(elementEntityContext.getItemId(),
-        elementEntityContext.getVersionId(), elementEntity.getId(), parentId);
+    StateElement element = new StateElement(elementEntityContext.getItemId(),
+        elementEntityContext.getVersionId(), elementEntity.getNamespace(), elementEntity.getId());
 
-    elementInfo.setNamespace(elementEntity.getNamespace());
-    elementInfo.setInfo(elementEntity.getInfo());
-    elementInfo.setRelations(elementEntity.getRelations());
-    elementInfo.setSubElements(elementEntity.getSubElementIds().stream()
-        .map(subElementId -> new ElementInfo(
-            elementInfo.getItemId(), elementInfo.getVersionId(), subElementId, elementInfo.getId()))
-        .collect(Collectors.toList()));
-    return elementInfo;
+    element.setParentId(parentId);
+    element.setInfo(elementEntity.getInfo());
+    element.setRelations(elementEntity.getRelations());
+    element.setSubElements(elementEntity.getSubElementIds());
+    return element;
   }
 }
