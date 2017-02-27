@@ -45,7 +45,7 @@ public class WorkspaceCassandraDao implements WorkspaceDao {
 
   private WorkspaceInfo createWorkspaceInfo(Row row) {
     WorkspaceInfo workspaceInfo = new WorkspaceInfo();
-    workspaceInfo.setId(new String(row.getString(Field.WORKSPACE_ID)));
+    workspaceInfo.setId(row.getString(Field.WORKSPACE_ID));
     workspaceInfo.setInfo(JsonUtil.json2Object(row.getString(Field.WORKSPACE_INFO), Info.class));
     return workspaceInfo;
   }

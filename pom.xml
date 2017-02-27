@@ -20,7 +20,7 @@
         </profile>
     </profiles>
     <modules>
-        <module>application</module>
+        <module>zusammen-state-store-cassandra-plugin</module>
     </modules>
     <build>
         <plugins>
