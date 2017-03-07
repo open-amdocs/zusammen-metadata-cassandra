@@ -25,14 +25,11 @@ import org.amdocs.zusammen.datatypes.item.Info;
 import org.amdocs.zusammen.datatypes.item.Item;
 import org.amdocs.zusammen.datatypes.item.ItemVersion;
 import org.amdocs.zusammen.datatypes.item.ItemVersionData;
-import org.amdocs.zusammen.datatypes.workspace.WorkspaceInfo;
+import org.amdocs.zusammen.datatypes.response.Response;
 import org.amdocs.zusammen.sdk.state.StateStore;
 import org.amdocs.zusammen.sdk.state.types.StateElement;
-import org.amdocs.zusammen.datatypes.response.Response;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class StateStoreImpl implements StateStore {
   private ElementStateStore elementStateStore = new ElementStateStore();
@@ -41,17 +38,17 @@ public class StateStoreImpl implements StateStore {
 
   @Override
   public Response<Collection<Item>> listItems(SessionContext context) {
-    return new Response(itemStateStore.listItems(context));
+    return new Response<>(itemStateStore.listItems(context));
   }
 
   @Override
   public Response<Boolean> isItemExist(SessionContext context, Id itemId) {
-    return new Response(itemStateStore.isItemExist(context, itemId));
+    return new Response<>(itemStateStore.isItemExist(context, itemId));
   }
 
   @Override
   public Response<Item> getItem(SessionContext context, Id itemId) {
-    return new Response(itemStateStore.getItem(context, itemId));
+    return new Response<>(itemStateStore.getItem(context, itemId));
   }
 
   @Override
@@ -75,57 +72,61 @@ public class StateStoreImpl implements StateStore {
   @Override
   public Response<Collection<ItemVersion>> listItemVersions(SessionContext context, Space space,
                                                             Id itemId) {
-    return new Response(versionStateStore.listItemVersions(context, space, itemId));
+    return new Response<>(versionStateStore.listItemVersions(context, space, itemId));
   }
 
   @Override
   public Response<Boolean> isItemVersionExist(SessionContext context, Space space, Id itemId, Id
       versionId) {
-    return new Response(versionStateStore.isItemVersionExist(context, space, itemId, versionId));
+    return new Response<>(versionStateStore.isItemVersionExist(context, space, itemId, versionId));
   }
 
   @Override
   public Response<ItemVersion> getItemVersion(SessionContext context, Space space, Id itemId, Id
       versionId) {
-    return new Response(versionStateStore.getItemVersion(context, space, itemId, versionId));
+    return new Response<>(versionStateStore.getItemVersion(context, space, itemId, versionId));
   }
 
   @Override
-  public Response<Void> createItemVersion(SessionContext context, Space space, Id itemId, Id baseVersionId,
-                                Id versionId, ItemVersionData data) {
+  public Response<Void> createItemVersion(SessionContext context, Space space, Id itemId,
+                                          Id baseVersionId,
+                                          Id versionId, ItemVersionData data) {
     versionStateStore.createItemVersion(context, space, itemId, baseVersionId, versionId, data);
     return new Response(Void.TYPE);
   }
 
   @Override
-  public Response<Void> updateItemVersion(SessionContext context, Space space, Id itemId, Id versionId,
-                                ItemVersionData data) {
+  public Response<Void> updateItemVersion(SessionContext context, Space space, Id itemId,
+                                          Id versionId,
+                                          ItemVersionData data) {
     versionStateStore.updateItemVersion(context, space, itemId, versionId, data);
     return new Response(Void.TYPE);
   }
 
   @Override
-  public Response<Void> deleteItemVersion(SessionContext context, Space space, Id itemId, Id versionId) {
+  public Response<Void> deleteItemVersion(SessionContext context, Space space, Id itemId,
+                                          Id versionId) {
     versionStateStore.deleteItemVersion(context, space, itemId, versionId);
     return new Response(Void.TYPE);
   }
 
   @Override
   public Response<Collection<StateElement>> listElements(SessionContext context,
-                                               ElementContext elementContext, Id elementId) {
-    return new Response(elementStateStore.listElements(context, elementContext, elementId));
+                                                         ElementContext elementContext,
+                                                         Id elementId) {
+    return new Response<>(elementStateStore.listElements(context, elementContext, elementId));
   }
 
   @Override
   public Response<Boolean> isElementExist(SessionContext context, ElementContext elementContext,
-                                Id elementId) {
-    return new Response(elementStateStore.isElementExist(context, elementContext, elementId));
+                                          Id elementId) {
+    return new Response<>(elementStateStore.isElementExist(context, elementContext, elementId));
   }
 
   @Override
   public Response<StateElement> getElement(SessionContext context, ElementContext elementContext,
-                                 Id elementId) {
-    return new Response(elementStateStore.getElement(context, elementContext, elementId));
+                                           Id elementId) {
+    return new Response<>(elementStateStore.getElement(context, elementContext, elementId));
   }
 
   @Override
@@ -146,24 +147,5 @@ public class StateStoreImpl implements StateStore {
     return new Response(Void.TYPE);
   }
 
-  @Override
-  public Response<Void> createWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
-    return new Response(Void.TYPE);
-  }
-
-  @Override
-  public Response<Void> saveWorkspace(SessionContext context, Id workspaceId, Info workspaceInfo) {
-    return new Response(Void.TYPE);
-  }
-
-  @Override
-  public Response<Void> deleteWorkspace(SessionContext context, Id workspaceId) {
-    return new Response(Void.TYPE);
-  }
-
-  @Override
-  public Response<Collection<WorkspaceInfo>> listWorkspaces(SessionContext context) {
-    return null;
-  }
 
 }
