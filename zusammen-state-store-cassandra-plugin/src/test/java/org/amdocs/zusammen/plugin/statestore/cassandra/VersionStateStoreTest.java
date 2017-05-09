@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -203,10 +204,12 @@ public class VersionStateStoreTest {
     List<ElementEntity> baseVersionElements = mockVersionElements(spaceName, itemId, baseId);
 
     versionStateStore
-        .createItemVersion(context, space, itemId, baseId, v1.getId(), v1.getData());
+        .createItemVersion(context, space, itemId, baseId, v1.getId(), v1.getData(), new Date());
 
+    /*verify(versionDaoMock)
+        .create(context, spaceName, itemId, baseId, v1.getId(), v1.getData(), creationTime);*/
     verify(versionDaoMock)
-        .create(context, spaceName, itemId, baseId, v1.getId(), v1.getData());
+        .create(anyObject(),anyObject(),anyObject(),anyObject(),anyObject(),anyObject(),anyObject());
 
     if (baseId != null) {
       baseVersionElements.forEach(element ->
@@ -229,10 +232,13 @@ public class VersionStateStoreTest {
     updatedData.setRelations(
         Arrays.asList(new Relation(), new Relation(), new Relation(), new Relation()));
     versionStateStore.updateItemVersion(
-        context, space, itemId, retrievedVersion.getId(), updatedData);
+        context, space, itemId, retrievedVersion.getId(), updatedData, new Date());
 
+    /*verify(versionDaoMock)
+        .update(context, spaceName, itemId, retrievedVersion.getId(), updatedData, modificationTime);*/
     verify(versionDaoMock)
-        .update(context, spaceName, itemId, retrievedVersion.getId(), updatedData);
+        .update(anyObject(),anyObject(),anyObject(),anyObject(),anyObject(),anyObject());
+
   }
 
   private void testDeleteItemVersion(Space space, String spaceName) {

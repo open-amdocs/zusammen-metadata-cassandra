@@ -58,7 +58,6 @@ public class ElementStateStoreTest {
 
   @Spy
   private ElementStateStore elementStateStore;
-
   @Mock
   private ElementRepository elementRepositoryMock;
   @Captor
@@ -104,6 +103,29 @@ public class ElementStateStoreTest {
     boolean elementExist = elementStateStore.isElementExist(context, elementContext, new Id());
 
     Assert.assertFalse(elementExist);
+  }
+
+  @Test
+  public void testGetElementNamespace() throws Exception {
+    Namespace retrievedNamespace = new Namespace(Namespace.ROOT_NAMESPACE, new Id());
+    doReturn(Optional.of(retrievedNamespace))
+        .when(elementRepositoryMock).getNamespace(anyObject(), anyObject(), anyObject());
+
+    Namespace namespace =
+        elementStateStore.getElementNamespace(context, elementContext.getItemId(), new Id());
+
+    Assert.assertEquals(namespace, retrievedNamespace);
+  }
+
+  @Test
+  public void testGetNonExistingElementNamespace() throws Exception {
+    doReturn(Optional.empty())
+        .when(elementRepositoryMock).getNamespace(anyObject(), anyObject(), anyObject());
+
+    Namespace namespace =
+        elementStateStore.getElementNamespace(context, elementContext.getItemId(), new Id());
+
+    Assert.assertNull(namespace);
   }
 
   @Test

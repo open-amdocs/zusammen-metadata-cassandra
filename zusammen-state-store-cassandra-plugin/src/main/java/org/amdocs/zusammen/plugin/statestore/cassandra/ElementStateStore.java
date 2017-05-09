@@ -17,6 +17,7 @@
 package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 import org.amdocs.zusammen.datatypes.Id;
+import org.amdocs.zusammen.datatypes.Namespace;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepository;
@@ -59,6 +60,14 @@ class ElementStateStore {
     return getElementRepository(context).get(context,
         new ElementEntityContext(StateStoreUtil.getPrivateSpaceName(context), elementContext),
         new ElementEntity(elementId)).isPresent();
+  }
+
+  Namespace getElementNamespace(SessionContext context, Id itemId, Id elementId) {
+    return getElementRepository(context)
+        .getNamespace(context,
+            new ElementEntityContext(StateStoreUtil.getPrivateSpaceName(context), itemId, null),
+            new ElementEntity(elementId))
+        .orElse(null);
   }
 
   StateElement getElement(SessionContext context, ElementContext elementContext,

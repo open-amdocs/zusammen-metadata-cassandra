@@ -7,6 +7,7 @@ import org.amdocs.zusammen.datatypes.item.ItemVersion;
 import org.amdocs.zusammen.datatypes.item.ItemVersionData;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Optional;
 
 public interface VersionDao {
@@ -15,9 +16,13 @@ public interface VersionDao {
   Optional<ItemVersion> get(SessionContext context, String space, Id itemId, Id versionId);
 
   void create(SessionContext context, String space, Id itemId, Id baseVersionId, Id versionId,
-              ItemVersionData data);
+              ItemVersionData data, Date creationTime);
 
-  void update(SessionContext context, String space, Id itemId, Id versionId, ItemVersionData data);
+  void update(SessionContext context, String space, Id itemId, Id versionId, ItemVersionData data,
+              Date modificationTime);
 
   void delete(SessionContext context, String space, Id itemId, Id versionId);
+
+  void updateItemVersionModificationTime(SessionContext context, String spaceName, Id itemId,
+                                         Id versionId, Date modificationTime);
 }

@@ -87,6 +87,23 @@ public class CassandraElementRepository implements ElementRepository {
     return row == null ? Optional.empty() : Optional.of(getElementEntity(element, row));
   }
 
+  @Override
+  public Optional<Namespace> getNamespace(SessionContext context,
+                                          ElementEntityContext elementContext,
+                                          ElementEntity element) {
+    Row row = getElementNamespaceAccessor(context).get(
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        element.getId().toString()).one();
+
+    return row == null ? Optional.empty()
+        : Optional.of(getNamespace(row.getString(ElementNamespaceField.NAMESPACE)));
+  }
+
+  private ElementNamespaceAccessor getElementNamespaceAccessor(SessionContext context) {
+    return CassandraDaoUtils.getAccessor(context, ElementNamespaceAccessor.class);
+  }
+
   private ElementAccessor getElementAccessor(SessionContext context) {
     return CassandraDaoUtils.getAccessor(context, ElementAccessor.class);
   }
@@ -97,6 +114,12 @@ public class CassandraElementRepository implements ElementRepository {
 
   private void createElement(SessionContext context, ElementEntityContext elementContext,
                              ElementEntity element) {
+    getElementNamespaceAccessor(context).create(
+        elementContext.getSpace(),
+        elementContext.getItemId().toString(),
+        element.getId().toString(),
+        element.getNamespace().toString());
+
     Set<String> subElementIds =
         element.getSubElementIds().stream().map(Id::toString).collect(Collectors.toSet());
 
@@ -203,25 +226,52 @@ public class CassandraElementRepository implements ElementRepository {
   }
 
   /*
-  CREATE TABLE IF NOT EXISTS element (
-    space text,
-    item_id text,
-    version_id text,
-    element_id text,
-    parent_id text,
-    namespace text,
-    info text,
-    relations text,
-    sub_element_ids set<text>,
-    PRIMARY KEY (( space, item_id, version_id, id ))
-  );
+CREATE TABLE IF NOT EXISTS element_namespace (
+	space text,
+	item_id text,
+	element_id text,
+	namespace text,
+	PRIMARY KEY (( space, item_id, element_id ))
+);  
+   */
+  @Accessor
+  interface ElementNamespaceAccessor {
+    @Query(
+        "UPDATE element_namespace SET namespace=:ns " +
+            "WHERE space=:space AND item_id=:item AND element_id=:id ")
+    void create(@Param("space") String space,
+                @Param("item") String itemId,
+                @Param("id") String elementId,
+                @Param("ns") String namespace);
+
+    @Query("SELECT namespace FROM element_namespace WHERE  space=? AND item_id=? AND element_id=?")
+    ResultSet get(String space, String itemId, String elementId);
+  }
+
+  private static final class ElementNamespaceField {
+    private static final String NAMESPACE = "namespace";
+  }
+
+  /*
+CREATE TABLE IF NOT EXISTS element (
+	space text,
+	item_id text,
+	version_id text,
+	element_id text,
+	parent_id text,
+	namespace text,
+	info text,
+	relations text,
+	sub_element_ids set<text>,
+	PRIMARY KEY (( space, item_id, version_id, element_id ))
+);
    */
   @Accessor
   interface ElementAccessor {
     @Query(
         "UPDATE element SET parent_id=:parentId, namespace=:ns, info=:info, relations=:rels, " +
-            "sub_element_ids=sub_element_ids+:subs " +
-            "WHERE space=:space AND item_id=:item AND version_id=:ver AND element_id=:id")
+            "sub_element_ids=sub_element_ids+:subs  " +
+            " WHERE space=:space AND item_id=:item AND version_id=:ver AND element_id=:id ")
     void create(@Param("space") String space,
                 @Param("item") String itemId,
                 @Param("ver") String versionId,
@@ -233,7 +283,7 @@ public class CassandraElementRepository implements ElementRepository {
                 @Param("subs") Set<String> subElementIds);
 
     @Query("UPDATE element SET info=?, relations=? " +
-        "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
+        " WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     void update(String info, String relations, String space, String itemId, String versionId,
                 String elementId);
 
@@ -241,16 +291,16 @@ public class CassandraElementRepository implements ElementRepository {
     void delete(String space, String itemId, String versionId, String elementId);
 
     @Query("SELECT parent_id, namespace, info, relations, sub_element_ids FROM element " +
-        "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
+        " WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     ResultSet get(String space, String itemId, String versionId, String elementId);
 
     @Query("UPDATE element SET sub_element_ids=sub_element_ids+? " +
-        "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
+        " WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     void addSubElements(Set<String> subElementIds, String space, String itemId, String versionId,
                         String elementId);
 
     @Query("UPDATE element SET sub_element_ids=sub_element_ids-? " +
-        "WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
+        " WHERE space=? AND item_id=? AND version_id=? AND element_id=?")
     void removeSubElements(Set<String> subElementIds, String space, String itemId, String versionId,
                            String elementId);
   }
@@ -264,13 +314,13 @@ public class CassandraElementRepository implements ElementRepository {
   }
 
   /*
-  CREATE TABLE IF NOT EXISTS version_elements (
-    space text,
-    item_id text,
-    version_id text,
-    element_ids set<text>,
-    PRIMARY KEY (( space, item_id, version_id ))
-  );
+CREATE TABLE IF NOT EXISTS version_elements (
+	space text,
+	item_id text,
+	version_id text,
+	element_ids set<text>,
+	PRIMARY KEY (( space, item_id, version_id ))
+);
    */
   @Accessor
   interface VersionElementsAccessor {

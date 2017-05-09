@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -114,20 +115,22 @@ public class ItemStateStoreTest {
   @Test
   public void testCreateItem() throws Exception {
     Item item = createItem("item1");
-    itemStateStore.createItem(context, item.getId(), item.getInfo());
+    Date date = new Date();
+    itemStateStore.createItem(context, item.getId(), item.getInfo(), date);
 
-    verify(itemDaoMock).create(context, item.getId(), item.getInfo());
+    verify(itemDaoMock).create(context, item.getId(), item.getInfo(), date);
   }
 
   @Test
   public void testUpdateItem() throws Exception {
     Item item = createItem("item1");
     doReturn(Optional.of(item)).when(itemDaoMock).get(context, item.getId());
+    Date date = new Date();
 
     Info updatedInfo = TestUtils.createInfo("item1 updated");
-    itemStateStore.updateItem(context, item.getId(), updatedInfo);
+    itemStateStore.updateItem(context, item.getId(), updatedInfo, date);
 
-    verify(itemDaoMock).update(context, item.getId(), updatedInfo);
+    verify(itemDaoMock).update(context, item.getId(), updatedInfo, date);
   }
 
   @Test

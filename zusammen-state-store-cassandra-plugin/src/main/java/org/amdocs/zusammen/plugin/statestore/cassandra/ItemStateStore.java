@@ -26,6 +26,7 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDao;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDaoFactory;
 
 import java.util.Collection;
+import java.util.Date;
 
 class ItemStateStore {
 
@@ -47,12 +48,12 @@ class ItemStateStore {
     return getItemDao(context).get(context, itemId).orElse(null);
   }
 
-  void createItem(SessionContext context, Id itemId, Info itemInfo) {
-    getItemDao(context).create(context, itemId, itemInfo);
+  void createItem(SessionContext context, Id itemId, Info itemInfo, Date creationTime) {
+    getItemDao(context).create(context, itemId, itemInfo,creationTime);
   }
 
-  void updateItem(SessionContext context, Id itemId, Info itemInfo) {
-    getItemDao(context).update(context, itemId, itemInfo);
+  void updateItem(SessionContext context, Id itemId, Info itemInfo, Date modificationTime) {
+    getItemDao(context).update(context, itemId, itemInfo,modificationTime);
   }
 
   void deleteItem(SessionContext context, Id itemId) {
@@ -66,5 +67,9 @@ class ItemStateStore {
 
   protected ItemDao getItemDao(SessionContext context) {
     return ItemDaoFactory.getInstance().createInterface(context);
+  }
+
+  public void updateItemModificationTime(SessionContext context, Id itemId, Date modificationTime) {
+    getItemDao(context).updateItemModificationTime(context, itemId, modificationTime);
   }
 }

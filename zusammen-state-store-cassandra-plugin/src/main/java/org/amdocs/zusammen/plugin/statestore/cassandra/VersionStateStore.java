@@ -29,6 +29,7 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import org.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 
 import java.util.Collection;
+import java.util.Date;
 
 import static org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreUtil.getSpaceName;
 
@@ -49,10 +50,11 @@ class VersionStateStore {
   }
 
   void createItemVersion(SessionContext context, Space space, Id itemId, Id baseVersionId,
-                         Id versionId, ItemVersionData data) {
+                         Id versionId, ItemVersionData data, Date creationTime) {
     String spaceName = getSpaceName(context, space);
 
-    getVersionDao(context).create(context, spaceName, itemId, baseVersionId, versionId, data);
+    getVersionDao(context)
+        .create(context, spaceName, itemId, baseVersionId, versionId, data, creationTime);
     if (baseVersionId == null) {
       return;
     }
@@ -60,9 +62,9 @@ class VersionStateStore {
   }
 
   void updateItemVersion(SessionContext context, Space space, Id itemId, Id versionId,
-                         ItemVersionData data) {
+                         ItemVersionData data, Date modificationTime) {
     getVersionDao(context)
-        .update(context, getSpaceName(context, space), itemId, versionId, data);
+        .update(context, getSpaceName(context, space), itemId, versionId, data, modificationTime);
   }
 
   void deleteItemVersion(SessionContext context, Space space, Id itemId, Id versionId) {
@@ -71,6 +73,14 @@ class VersionStateStore {
     deleteElements(context, spaceName, itemId, versionId);
     getVersionDao(context).delete(context, spaceName, itemId, versionId);
   }
+
+  public void updateItemVersionModificationTime(SessionContext context, Space space, Id itemId,
+                                                Id versionId, Date modificationTime) {
+    getVersionDao(context)
+        .updateItemVersionModificationTime(context, getSpaceName(context, space), itemId, versionId,
+            modificationTime);
+  }
+
 
   private void copyElements(SessionContext context, String space, Id itemId, Id sourceVersionId,
                             Id targetVersionId) {
@@ -100,5 +110,6 @@ class VersionStateStore {
   protected ElementRepository getElementRepository(SessionContext context) {
     return ElementRepositoryFactory.getInstance().createInterface(context);
   }
+
 
 }

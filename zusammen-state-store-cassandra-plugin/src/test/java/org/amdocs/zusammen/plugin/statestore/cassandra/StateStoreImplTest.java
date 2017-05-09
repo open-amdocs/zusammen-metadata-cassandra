@@ -31,6 +31,9 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Date;
+
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.verify;
 
 public class StateStoreImplTest {
@@ -81,16 +84,21 @@ public class StateStoreImplTest {
   @Test
   public void testCreateItem() throws Exception {
     Info itemInfo = new Info();
-    stateStore.createItem(context, itemId, itemInfo);
-    verify(itemStateStoreMock).createItem(context, itemId, itemInfo);
+    Date date = new Date();
+
+
+    stateStore.createItem(context, itemId, itemInfo, date);
+
+    verify(itemStateStoreMock).createItem(context, itemId, itemInfo, date);
   }
 
   @Test
   public void testUpdateItem() throws Exception {
     Id itemId = new Id();
     Info itemInfo = new Info();
-    stateStore.updateItem(context, itemId, itemInfo);
-    verify(itemStateStoreMock).updateItem(context, itemId, itemInfo);
+    Date date = new Date();
+    stateStore.updateItem(context, itemId, itemInfo, date);
+    verify(itemStateStoreMock).updateItem(context, itemId, itemInfo, date);
   }
 
   @Test
@@ -126,16 +134,24 @@ public class StateStoreImplTest {
   public void testCreateItemVersion() throws Exception {
     Id baseVersionId = new Id();
     ItemVersionData data = new ItemVersionData();
-    stateStore.createItemVersion(context, space, itemId, baseVersionId, versionId, data);
+    stateStore
+        .createItemVersion(context, space, itemId, baseVersionId, versionId, data, new Date());
+    /*verify(versionStateStoreMock)
+        .createItemVersion(context, space, itemId, baseVersionId, versionId, data, creationTime);*/
     verify(versionStateStoreMock)
-        .createItemVersion(context, space, itemId, baseVersionId, versionId, data);
+        .createItemVersion(anyObject(), anyObject(), anyObject(), anyObject(), anyObject(),
+            anyObject(), anyObject());
   }
 
   @Test
   public void testUpdateItemVersion() throws Exception {
     ItemVersionData data = new ItemVersionData();
-    stateStore.updateItemVersion(context, space, itemId, versionId, data);
-    verify(versionStateStoreMock).updateItemVersion(context, space, itemId, versionId, data);
+    stateStore.updateItemVersion(context, space, itemId, versionId, data, new Date());
+   /* verify(versionStateStoreMock).updateItemVersion(context, space, itemId, versionId, data,
+        modificationTime);*/
+    verify(versionStateStoreMock)
+        .updateItemVersion(anyObject(), anyObject(), anyObject(), anyObject(), anyObject(),
+            anyObject());
   }
 
   @Test

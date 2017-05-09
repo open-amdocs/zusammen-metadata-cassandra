@@ -18,6 +18,7 @@ package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 
 import org.amdocs.zusammen.datatypes.Id;
+import org.amdocs.zusammen.datatypes.Namespace;
 import org.amdocs.zusammen.datatypes.SessionContext;
 import org.amdocs.zusammen.datatypes.Space;
 import org.amdocs.zusammen.datatypes.item.ElementContext;
@@ -30,6 +31,7 @@ import org.amdocs.zusammen.sdk.state.StateStore;
 import org.amdocs.zusammen.sdk.state.types.StateElement;
 
 import java.util.Collection;
+import java.util.Date;
 
 public class StateStoreImpl implements StateStore {
   private ElementStateStore elementStateStore = new ElementStateStore();
@@ -52,20 +54,29 @@ public class StateStoreImpl implements StateStore {
   }
 
   @Override
-  public Response<Void> createItem(SessionContext context, Id itemId, Info itemInfo) {
-    itemStateStore.createItem(context, itemId, itemInfo);
+  public Response<Void> createItem(SessionContext context, Id itemId, Info itemInfo, Date
+      creationTime) {
+    itemStateStore.createItem(context, itemId, itemInfo, creationTime);
     return new Response(Void.TYPE);
   }
 
   @Override
-  public Response<Void> updateItem(SessionContext context, Id itemId, Info itemInfo) {
-    itemStateStore.updateItem(context, itemId, itemInfo);
+  public Response<Void> updateItem(SessionContext context, Id itemId, Info itemInfo, Date
+      modificationTime) {
+    itemStateStore.updateItem(context, itemId, itemInfo, modificationTime);
     return new Response(Void.TYPE);
   }
 
   @Override
   public Response<Void> deleteItem(SessionContext context, Id itemId) {
     itemStateStore.deleteItem(context, itemId);
+    return new Response(Void.TYPE);
+  }
+
+  @Override
+  public Response<Void> updateItemModificationTime(SessionContext context, Id itemId,
+                                                   Date modificationTime) {
+    itemStateStore.updateItemModificationTime(context, itemId,  modificationTime);
     return new Response(Void.TYPE);
   }
 
@@ -90,16 +101,19 @@ public class StateStoreImpl implements StateStore {
   @Override
   public Response<Void> createItemVersion(SessionContext context, Space space, Id itemId,
                                           Id baseVersionId,
-                                          Id versionId, ItemVersionData data) {
-    versionStateStore.createItemVersion(context, space, itemId, baseVersionId, versionId, data);
+                                          Id versionId, ItemVersionData data,
+                                          Date creationTime) {
+    versionStateStore
+        .createItemVersion(context, space, itemId, baseVersionId, versionId, data, creationTime);
     return new Response(Void.TYPE);
   }
 
   @Override
   public Response<Void> updateItemVersion(SessionContext context, Space space, Id itemId,
                                           Id versionId,
-                                          ItemVersionData data) {
-    versionStateStore.updateItemVersion(context, space, itemId, versionId, data);
+                                          ItemVersionData data,
+                                          Date modificationTime) {
+    versionStateStore.updateItemVersion(context, space, itemId, versionId, data, modificationTime);
     return new Response(Void.TYPE);
   }
 
@@ -107,6 +121,15 @@ public class StateStoreImpl implements StateStore {
   public Response<Void> deleteItemVersion(SessionContext context, Space space, Id itemId,
                                           Id versionId) {
     versionStateStore.deleteItemVersion(context, space, itemId, versionId);
+    return new Response(Void.TYPE);
+  }
+
+
+  @Override
+  public Response<Void> updateItemVersionModificationTime(SessionContext context,Space space, Id itemId,
+                                                          Id versionId, Date modificationTime) {
+    versionStateStore.updateItemVersionModificationTime(context,space,  itemId, versionId,
+        modificationTime);
     return new Response(Void.TYPE);
   }
 
@@ -121,6 +144,11 @@ public class StateStoreImpl implements StateStore {
   public Response<Boolean> isElementExist(SessionContext context, ElementContext elementContext,
                                           Id elementId) {
     return new Response<>(elementStateStore.isElementExist(context, elementContext, elementId));
+  }
+
+  @Override
+  public Response<Namespace> getElementNamespace(SessionContext context, Id itemId, Id elementId) {
+    return new Response<>(elementStateStore.getElementNamespace(context, itemId, elementId));
   }
 
   @Override
@@ -146,6 +174,7 @@ public class StateStoreImpl implements StateStore {
     elementStateStore.deleteElement(context, element);
     return new Response(Void.TYPE);
   }
+
 
 
 }

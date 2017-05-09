@@ -23,9 +23,11 @@ public class ElementEntityContext {
   private String space;
   private Id itemId;
   private Id versionId;
+  private String changeRef;
 
   public ElementEntityContext(String space, ElementContext elementContext) {
     this(space, elementContext.getItemId(), elementContext.getVersionId());
+    this.setChangeRef(elementContext.getChangeRef());
   }
 
   public ElementEntityContext(String space, Id itemId, Id versionId) {
@@ -58,8 +60,16 @@ public class ElementEntityContext {
     this.versionId = versionId;
   }
 
+  public String getChangeRef() {
+    return changeRef;
+  }
+
+  public void setChangeRef(String changeRef) {
+    this.changeRef = changeRef;
+  }
+
   @Override
-public boolean equals(Object o) {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     }

@@ -12,6 +12,7 @@ import org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDao;
 import org.amdocs.zusammen.utils.fileutils.json.JsonUtil;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,13 +20,20 @@ import java.util.stream.Collectors;
 public class ItemCassandraDao implements ItemDao {
 
   @Override
-  public void create(SessionContext context, Id itemId, Info itemInfo) {
-    update(context, itemId, itemInfo);
+  public void create(SessionContext context, Id itemId, Info itemInfo, Date creationTime) {
+    getAccessor(context).create(itemId.getValue(), JsonUtil.object2Json(itemInfo),creationTime);
+  }
+
+
+
+  @Override
+  public void update(SessionContext context, Id itemId, Info itemInfo, Date modificationTime) {
+    getAccessor(context).update(itemId.getValue(), JsonUtil.object2Json(itemInfo),modificationTime);
   }
 
   @Override
-  public void update(SessionContext context, Id itemId, Info itemInfo) {
-    getAccessor(context).save(itemId.getValue(), JsonUtil.object2Json(itemInfo));
+  public void updateItemModificationTime(SessionContext context, Id itemId, Date modificationTime) {
+    getAccessor(context).updateModificationTime(itemId.getValue(),modificationTime);
   }
 
   @Override
@@ -46,10 +54,13 @@ public class ItemCassandraDao implements ItemDao {
         : rows.stream().map(this::createItem).collect(Collectors.toList());
   }
 
+
   private Item createItem(Row row) {
     Item item = new Item();
     item.setId(new Id(row.getString(ItemField.ITEM_ID)));
     item.setInfo(JsonUtil.json2Object(row.getString(ItemField.ITEM_INFO), Info.class));
+    item.setCreationTime(row.getDate(ItemField.CREATION_TIME));
+    item.setModificationTime(row.getDate(ItemField.MODIFICATION_TIME));
     return item;
   }
 
@@ -57,24 +68,34 @@ public class ItemCassandraDao implements ItemDao {
     return CassandraDaoUtils.getAccessor(context, ItemAccessor.class);
   }
 
+
   @Accessor
   interface ItemAccessor {
 
-    @Query("INSERT INTO item (item_id, item_info) VALUES (?,?)")
-    void save(String itemId, String itemInfo);
+    @Query("INSERT INTO item (item_id, item_info, creation_time) VALUES (?,?,?)")
+    void create(String itemId, String itemInfo,Date creationTime);
+
+    @Query("INSERT INTO item (item_id, item_info,modification_time) VALUES (?,?,?)")
+    void update(String itemId, String itemInfo,Date modificationTime);
+
+    @Query("INSERT INTO item (item_id, modification_time) VALUES (?,?)")
+    void updateModificationTime(String itemId, Date modificationTime);
+
 
     @Query("DELETE FROM item WHERE item_id=?")
     void delete(String itemId);
 
-    @Query("SELECT item_id, item_info FROM item WHERE item_id=?")
+    @Query("SELECT item_id, item_info, creation_time, modification_time FROM item WHERE item_id=?")
     ResultSet get(String itemId);
 
-    @Query("SELECT item_id, item_info FROM item")
+    @Query("SELECT item_id, item_info , creation_time, modification_time FROM item")
     ResultSet list();
   }
 
   private static final class ItemField {
     private static final String ITEM_ID = "item_id";
     private static final String ITEM_INFO = "item_info";
+    private static final String CREATION_TIME = "creation_time";
+    private static final String MODIFICATION_TIME = "modification_time";
   }
 }

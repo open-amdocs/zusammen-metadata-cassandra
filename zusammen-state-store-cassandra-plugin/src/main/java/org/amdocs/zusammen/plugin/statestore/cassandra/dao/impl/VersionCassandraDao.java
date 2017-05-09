@@ -16,6 +16,7 @@ import org.amdocs.zusammen.utils.fileutils.json.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,25 +25,35 @@ public class VersionCassandraDao implements VersionDao {
 
   @Override
   public void create(SessionContext context, String space, Id itemId, Id baseVersionId,
-                     Id versionId, ItemVersionData data) {
+                     Id versionId, ItemVersionData data, Date creationTime) {
     String baseVersion = baseVersionId != null ? baseVersionId.toString() : null;
 
     getAccessor(context)
         .create(space, itemId.toString(), versionId.toString(), baseVersion,
-            JsonUtil.object2Json(data.getInfo()), JsonUtil.object2Json(data.getRelations()));
+            creationTime,JsonUtil.object2Json(data.getInfo()), JsonUtil.object2Json(data
+                .getRelations()));
   }
 
   @Override
   public void update(SessionContext context, String space, Id itemId, Id versionId,
-                     ItemVersionData data) {
+                     ItemVersionData data, Date modificationTime) {
     getAccessor(context)
-        .update(JsonUtil.object2Json(data.getInfo()), JsonUtil.object2Json(data.getRelations()),
-            space, itemId.toString(), versionId.toString());
+        .update(JsonUtil.object2Json(data.getInfo()), JsonUtil.object2Json(data
+                .getRelations()),
+            modificationTime, space, itemId.toString(), versionId.toString());
   }
 
   @Override
   public void delete(SessionContext context, String space, Id itemId, Id versionId) {
     getAccessor(context).delete(space, itemId.toString(), versionId.toString());
+  }
+
+  @Override
+  public void updateItemVersionModificationTime(SessionContext context, String space, Id itemId,
+                                                Id versionId, Date modificationTime) {
+    getAccessor(context)
+        .updateModificationTime(modificationTime,
+            space, itemId.toString(), versionId.toString());
   }
 
   @Override
@@ -70,6 +81,8 @@ public class VersionCassandraDao implements VersionDao {
         .setRelations(JsonUtil.json2Object(row.getString(VersionField.RELATIONS),
             new TypeToken<ArrayList<Relation>>() {
             }.getType()));
+    itemVersion.setCreationTime(row.getDate(VersionField.CREATION_TIME));
+    itemVersion.setModificationTime(row.getDate(VersionField.MODIFICATION_TIME));
     return itemVersion;
   }
 
@@ -80,23 +93,39 @@ public class VersionCassandraDao implements VersionDao {
   @Accessor
   interface VersionAccessor {
 
-    @Query("INSERT INTO version (space, item_id, version_id, base_version_id, info, relations) " +
-        "VALUES (?, ?, ?, ?, ?, ?)")
+    @Query(
+        "INSERT INTO version (space, item_id, version_id, base_version_id, creation_time, info, relations) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?)")
     void create(String space, String itemId, String versionId, String baseVersionId,
-                String info, String relations);
+                Date creationTime, String info, String relations);
 
-    @Query("UPDATE version SET info=?, relations=? WHERE space=? AND item_id=? AND version_id=?")
-    void update(String info, String relations, String space, String itemId, String versionId);
+
+
+    @Query("UPDATE version SET info=?, relations=? ,modification_time= ? WHERE space=? AND " +
+        "item_id=? AND version_id=?" +
+        " ")
+    void update(String info, String relations, Date modificationTime, String space, String itemId,
+                String versionId
+    );
+
+    @Query("UPDATE version SET modification_time=? WHERE space=? AND item_id=? AND version_id=? "
+        )
+    void updateModificationTime(Date modificationTime, String space, String itemId, String versionId
+    );
+
 
     @Query("DELETE FROM version WHERE space=? AND item_id=? AND version_id=?")
     void delete(String space, String itemId, String versionId);
 
-    @Query("SELECT version_id, base_version_id, info, relations FROM version " +
+    @Query("SELECT version_id, base_version_id, info, relations, creation_time, modification_time" +
+        " " +
+        "FROM version " +
         "WHERE space=? AND item_id=? AND version_id=?")
     ResultSet get(String space, String itemId, String versionId);
 
-    @Query("SELECT version_id, base_version_id, info, relations FROM version " +
-        "WHERE space=? AND item_id=?")
+    @Query(
+        "SELECT version_id, base_version_id, info, relations, creation_time, modification_time FROM version " +
+            "WHERE space=? AND item_id=?")
     ResultSet list(String space, String itemId);
   }
 
@@ -105,6 +134,9 @@ public class VersionCassandraDao implements VersionDao {
     private static final String BASE_VERSION_ID = "base_version_id";
     private static final String INFO = "info";
     private static final String RELATIONS = "relations";
+    private static final String CREATION_TIME = "creation_time";
+    private static final String MODIFICATION_TIME = "modification_time";
+
   }
 
 }
