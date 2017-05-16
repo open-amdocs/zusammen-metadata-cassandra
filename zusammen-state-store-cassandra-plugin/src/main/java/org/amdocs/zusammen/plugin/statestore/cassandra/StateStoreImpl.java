@@ -17,6 +17,10 @@
 package org.amdocs.zusammen.plugin.statestore.cassandra;
 
 
+import org.amdocs.zusammen.commons.health.data.HealthInfo;
+import org.amdocs.zusammen.commons.health.data.HealthStatus;
+import org.amdocs.zusammen.commons.log.ZusammenLogger;
+import org.amdocs.zusammen.commons.log.ZusammenLoggerFactory;
 import org.amdocs.zusammen.datatypes.Id;
 import org.amdocs.zusammen.datatypes.Namespace;
 import org.amdocs.zusammen.datatypes.SessionContext;
@@ -27,16 +31,39 @@ import org.amdocs.zusammen.datatypes.item.Item;
 import org.amdocs.zusammen.datatypes.item.ItemVersion;
 import org.amdocs.zusammen.datatypes.item.ItemVersionData;
 import org.amdocs.zusammen.datatypes.response.Response;
+import org.amdocs.zusammen.plugin.statestore.cassandra.dao.HealthHelper;
 import org.amdocs.zusammen.sdk.state.StateStore;
 import org.amdocs.zusammen.sdk.state.types.StateElement;
 
 import java.util.Collection;
 import java.util.Date;
 
-public class StateStoreImpl implements StateStore {
+public class StateStoreImpl implements StateStore, HealthHelper {
   private ElementStateStore elementStateStore = new ElementStateStore();
   private VersionStateStore versionStateStore = new VersionStateStore();
   private ItemStateStore itemStateStore = new ItemStateStore(versionStateStore);
+  public static final ZusammenLogger LOGGER = ZusammenLoggerFactory.getLogger(StateStoreImpl.class.getName());
+  @Override
+  public Response<HealthInfo> checkHealth(SessionContext sessionContext) {
+    HealthInfo healthInfo = null;
+    boolean queryResult = false;
+    try {
+       queryResult = getKeepAliveDao(sessionContext).get(sessionContext);
+    }  catch (Throwable t){
+      LOGGER.error(t.getMessage(),t);
+      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,t.getMessage());
+      return new Response<>(healthInfo);
+    }
+    if(queryResult) {
+       healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.UP,"");
+      LOGGER.info("Health info:"+ healthInfo);
+    } else {
+      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,"Unkown Issue");
+      LOGGER.error("Health info:"+ healthInfo);
+    }
+
+    return new Response<>(healthInfo);
+  }
 
   @Override
   public Response<Collection<Item>> listItems(SessionContext context) {
