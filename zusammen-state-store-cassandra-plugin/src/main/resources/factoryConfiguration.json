@@ -1,6 +1,6 @@
 {
   "org.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDaoFactory": "org.amdocs.zusammen.plugin.statestore.cassandra.dao.impl.ItemCassandraDaoFactory",
   "org.amdocs.zusammen.plugin.statestore.cassandra.dao.VersionDaoFactory": "org.amdocs.zusammen.plugin.statestore.cassandra.dao.impl.VersionCassandraDaoFactory",
-  "org.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepositoryFactory": "org.amdocs.zusammen.plugin.statestore.cassandra.dao.impl.CassandraElementRepositoryFactory"
+  "org.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepositoryFactory": "org.amdocs.zusammen.plugin.statestore.cassandra.dao.impl.CassandraElementRepositoryFactory",
   "org.amdocs.zusammen.plugin.statestore.cassandra.dao.KeepAliveDaoFactory": "org.amdocs.zusammen.plugin.statestore.cassandra.dao.impl.KeepAliveCassandraDaoFactory"
 }
