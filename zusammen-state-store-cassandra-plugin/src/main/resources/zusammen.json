@@ -3,7 +3,7 @@
     "level": 1,
     "plugins": {
       "zusammen_state_store": {
-        "implementationClass": "org.amdocs.zusammen.plugin.statestore.cassandra.StateStoreImpl"
+        "implementationClass": "com.amdocs.zusammen.plugin.statestore.cassandra.StateStoreImpl"
       }
     }
   }
