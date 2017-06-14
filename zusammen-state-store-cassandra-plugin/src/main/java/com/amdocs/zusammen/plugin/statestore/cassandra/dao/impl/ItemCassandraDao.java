@@ -1,15 +1,15 @@
 package com.amdocs.zusammen.plugin.statestore.cassandra.dao.impl;
 
-import com.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDao;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.mapping.annotations.Accessor;
-import com.datastax.driver.mapping.annotations.Query;
 import com.amdocs.zusammen.datatypes.Id;
 import com.amdocs.zusammen.datatypes.SessionContext;
 import com.amdocs.zusammen.datatypes.item.Info;
 import com.amdocs.zusammen.datatypes.item.Item;
+import com.amdocs.zusammen.plugin.statestore.cassandra.dao.ItemDao;
 import com.amdocs.zusammen.utils.fileutils.json.JsonUtil;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.mapping.annotations.Accessor;
+import com.datastax.driver.mapping.annotations.Query;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,19 +21,20 @@ public class ItemCassandraDao implements ItemDao {
 
   @Override
   public void create(SessionContext context, Id itemId, Info itemInfo, Date creationTime) {
-    getAccessor(context).create(itemId.getValue(), JsonUtil.object2Json(itemInfo),creationTime);
+    getAccessor(context)
+        .create(itemId.getValue(), JsonUtil.object2Json(itemInfo), creationTime, creationTime);
   }
-
 
 
   @Override
   public void update(SessionContext context, Id itemId, Info itemInfo, Date modificationTime) {
-    getAccessor(context).update(itemId.getValue(), JsonUtil.object2Json(itemInfo),modificationTime);
+    getAccessor(context)
+        .update(itemId.getValue(), JsonUtil.object2Json(itemInfo), modificationTime);
   }
 
   @Override
   public void updateItemModificationTime(SessionContext context, Id itemId, Date modificationTime) {
-    getAccessor(context).updateModificationTime(itemId.getValue(),modificationTime);
+    getAccessor(context).updateModificationTime(itemId.getValue(), modificationTime);
   }
 
   @Override
@@ -72,11 +73,12 @@ public class ItemCassandraDao implements ItemDao {
   @Accessor
   interface ItemAccessor {
 
-    @Query("INSERT INTO item (item_id, item_info, creation_time) VALUES (?,?,?)")
-    void create(String itemId, String itemInfo,Date creationTime);
+    @Query("INSERT INTO item (item_id, item_info, creation_time, modification_time) " +
+        "VALUES (?,?,?,?)")
+    void create(String itemId, String itemInfo, Date creationTime, Date modificationTime);
 
     @Query("INSERT INTO item (item_id, item_info,modification_time) VALUES (?,?,?)")
-    void update(String itemId, String itemInfo,Date modificationTime);
+    void update(String itemId, String itemInfo, Date modificationTime);
 
     @Query("INSERT INTO item (item_id, modification_time) VALUES (?,?)")
     void updateModificationTime(String itemId, Date modificationTime);

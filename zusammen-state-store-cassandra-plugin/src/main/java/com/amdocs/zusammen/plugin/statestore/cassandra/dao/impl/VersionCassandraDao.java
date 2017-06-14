@@ -1,18 +1,18 @@
 package com.amdocs.zusammen.plugin.statestore.cassandra.dao.impl;
 
-import com.amdocs.zusammen.plugin.statestore.cassandra.dao.VersionDao;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.mapping.annotations.Accessor;
-import com.datastax.driver.mapping.annotations.Query;
-import com.google.gson.reflect.TypeToken;
 import com.amdocs.zusammen.datatypes.Id;
 import com.amdocs.zusammen.datatypes.SessionContext;
 import com.amdocs.zusammen.datatypes.item.Info;
 import com.amdocs.zusammen.datatypes.item.ItemVersion;
 import com.amdocs.zusammen.datatypes.item.ItemVersionData;
 import com.amdocs.zusammen.datatypes.item.Relation;
+import com.amdocs.zusammen.plugin.statestore.cassandra.dao.VersionDao;
 import com.amdocs.zusammen.utils.fileutils.json.JsonUtil;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.mapping.annotations.Accessor;
+import com.datastax.driver.mapping.annotations.Query;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,9 +29,9 @@ public class VersionCassandraDao implements VersionDao {
     String baseVersion = baseVersionId != null ? baseVersionId.toString() : null;
 
     getAccessor(context)
-        .create(space, itemId.toString(), versionId.toString(), baseVersion,
-            creationTime,JsonUtil.object2Json(data.getInfo()), JsonUtil.object2Json(data
-                .getRelations()));
+        .create(space, itemId.toString(), versionId.toString(), baseVersion, creationTime,
+            creationTime, JsonUtil.object2Json(data.getInfo()),
+            JsonUtil.object2Json(data.getRelations()));
   }
 
   @Override
@@ -94,32 +94,27 @@ public class VersionCassandraDao implements VersionDao {
   interface VersionAccessor {
 
     @Query(
-        "INSERT INTO version (space, item_id, version_id, base_version_id, creation_time, info, relations) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?)")
+        "INSERT INTO version (space, item_id, version_id, base_version_id, creation_time, " +
+            "modification_time, info, relations) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
     void create(String space, String itemId, String versionId, String baseVersionId,
-                Date creationTime, String info, String relations);
-
+                Date creationTime, Date modificationTime, String info, String relations);
 
 
     @Query("UPDATE version SET info=?, relations=? ,modification_time= ? WHERE space=? AND " +
-        "item_id=? AND version_id=?" +
-        " ")
+        "item_id=? AND version_id=?")
     void update(String info, String relations, Date modificationTime, String space, String itemId,
-                String versionId
-    );
+                String versionId);
 
-    @Query("UPDATE version SET modification_time=? WHERE space=? AND item_id=? AND version_id=? "
-        )
-    void updateModificationTime(Date modificationTime, String space, String itemId, String versionId
-    );
+    @Query("UPDATE version SET modification_time=? WHERE space=? AND item_id=? AND version_id=? ")
+    void updateModificationTime(Date modificationTime, String space, String itemId,
+                                String versionId);
 
 
     @Query("DELETE FROM version WHERE space=? AND item_id=? AND version_id=?")
     void delete(String space, String itemId, String versionId);
 
     @Query("SELECT version_id, base_version_id, info, relations, creation_time, modification_time" +
-        " " +
-        "FROM version " +
+        " FROM version " +
         "WHERE space=? AND item_id=? AND version_id=?")
     ResultSet get(String space, String itemId, String versionId);
 
@@ -136,7 +131,6 @@ public class VersionCassandraDao implements VersionDao {
     private static final String RELATIONS = "relations";
     private static final String CREATION_TIME = "creation_time";
     private static final String MODIFICATION_TIME = "modification_time";
-
   }
 
 }
