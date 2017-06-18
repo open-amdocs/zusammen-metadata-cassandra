@@ -173,7 +173,7 @@ public class VersionStateStoreTest {
     Assert.assertTrue(itemExist);
   }
 
-  public void testGetItemVersion(Space space, String spaceName) throws Exception {
+  private void testGetItemVersion(Space space, String spaceName) throws Exception {
     Id itemId = new Id();
     ItemVersion retrievedVersion = TestUtils.createItemVersion(new Id(), null, "v1");
     doReturn(Optional.of(retrievedVersion)).when(versionDaoMock)
