@@ -2,18 +2,19 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+    <modelVersion>4.0.0</modelVersion>
+    <name>zusammen metadata cassandra</name>
+    <description>zusammen metadata cassandra plugin</description>
     <parent>
         <groupId>com.amdocs.zusammen.plugin</groupId>
         <artifactId>zusammen-state-store</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.2.0</version>
     </parent>
 
     <artifactId>zusammen-state-store-cassandra-plugin</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
-    <modelVersion>4.0.0</modelVersion>
     <properties>
         <testng.version>6.9.10</testng.version>
         <mockito.version>1.10.19</mockito.version>
@@ -22,27 +23,27 @@
         <dependency>
             <groupId>com.amdocs.zusammen</groupId>
             <artifactId>zusammen-sdk</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.amdocs.zusammen</groupId>
             <artifactId>zusammen-commons-db-api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.amdocs.zusammen</groupId>
             <artifactId>zusammen-commons-log</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.amdocs.zusammen</groupId>
             <artifactId>zusammen-commons-health</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.amdocs.zusammen</groupId>
             <artifactId>zusammen-commons-db-impl</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.2.0</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
