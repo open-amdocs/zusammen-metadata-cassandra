@@ -51,14 +51,14 @@ public class StateStoreImpl implements StateStore, HealthHelper {
        queryResult = getKeepAliveDao(sessionContext).get(sessionContext);
     }  catch (Throwable t){
       LOGGER.error(t.getMessage(),t);
-      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,t.getMessage());
+      healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.DOWN,t.getMessage());
       return new Response<>(healthInfo);
     }
     if(queryResult) {
-       healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.UP,"");
+       healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.UP,"");
       LOGGER.debug("Health info:"+ healthInfo);
     } else {
-      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,"DB Schema does not exist.");
+      healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.DOWN,"DB Schema does not exist.");
       LOGGER.error("Health info:"+ healthInfo);
     }
 
