@@ -56,9 +56,9 @@ public class StateStoreImpl implements StateStore, HealthHelper {
     }
     if(queryResult) {
        healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.UP,"");
-      LOGGER.info("Health info:"+ healthInfo);
+      LOGGER.debug("Health info:"+ healthInfo);
     } else {
-      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,"Unkown Issue");
+      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,"DB Schema does not exist.");
       LOGGER.error("Health info:"+ healthInfo);
     }
 
