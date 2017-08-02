@@ -45,20 +45,20 @@ public class StateStoreImpl implements StateStore, HealthHelper {
   public static final ZusammenLogger LOGGER = ZusammenLoggerFactory.getLogger(StateStoreImpl.class.getName());
   @Override
   public Response<HealthInfo> checkHealth(SessionContext sessionContext) {
-    HealthInfo healthInfo = null;
-    boolean queryResult = false;
+    HealthInfo healthInfo;
+    boolean queryResult;
     try {
        queryResult = getKeepAliveDao(sessionContext).get(sessionContext);
     }  catch (Throwable t){
       LOGGER.error(t.getMessage(),t);
-      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,t.getMessage());
+      healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.DOWN,t.getMessage());
       return new Response<>(healthInfo);
     }
     if(queryResult) {
-       healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.UP,"");
-      LOGGER.info("Health info:"+ healthInfo);
+       healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.UP,"");
+      LOGGER.debug("Health info:"+ healthInfo);
     } else {
-      healthInfo = new HealthInfo(CASSANDERA_MODEL_NAME, HealthStatus.DOWN,"Unkown Issue");
+      healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.DOWN,"Query failure");
       LOGGER.error("Health info:"+ healthInfo);
     }
 
