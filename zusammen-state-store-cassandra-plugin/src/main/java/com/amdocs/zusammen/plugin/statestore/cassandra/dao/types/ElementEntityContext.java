@@ -23,17 +23,22 @@ public class ElementEntityContext {
   private String space;
   private Id itemId;
   private Id versionId;
-  private String changeRef;
+  private Id revisionId;
 
   public ElementEntityContext(String space, ElementContext elementContext) {
     this(space, elementContext.getItemId(), elementContext.getVersionId());
-    this.setChangeRef(elementContext.getChangeRef());
+    this.setRevisionId(elementContext.getRevisionId());
   }
 
   public ElementEntityContext(String space, Id itemId, Id versionId) {
     this.space = space;
     this.itemId = itemId;
     this.versionId = versionId;
+  }
+
+  public ElementEntityContext(String space, Id itemId, Id versionId,Id revisionId) {
+   this(space,itemId,versionId);
+    this.revisionId = revisionId;
   }
 
   public String getSpace() {
@@ -60,12 +65,13 @@ public class ElementEntityContext {
     this.versionId = versionId;
   }
 
-  public String getChangeRef() {
-    return changeRef;
+
+  public Id getRevisionId() {
+    return revisionId;
   }
 
-  public void setChangeRef(String changeRef) {
-    this.changeRef = changeRef;
+  public void setRevisionId(Id revisionId) {
+    this.revisionId = revisionId;
   }
 
   @Override
