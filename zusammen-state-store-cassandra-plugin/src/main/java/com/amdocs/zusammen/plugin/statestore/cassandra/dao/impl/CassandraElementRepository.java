@@ -16,12 +16,6 @@
 
 package com.amdocs.zusammen.plugin.statestore.cassandra.dao.impl;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.mapping.annotations.Accessor;
-import com.datastax.driver.mapping.annotations.Param;
-import com.datastax.driver.mapping.annotations.Query;
-import com.google.gson.reflect.TypeToken;
 import com.amdocs.zusammen.datatypes.Id;
 import com.amdocs.zusammen.datatypes.Namespace;
 import com.amdocs.zusammen.datatypes.SessionContext;
@@ -31,13 +25,18 @@ import com.amdocs.zusammen.plugin.statestore.cassandra.dao.ElementRepository;
 import com.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import com.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 import com.amdocs.zusammen.utils.fileutils.json.JsonUtil;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.mapping.annotations.Accessor;
+import com.datastax.driver.mapping.annotations.Param;
+import com.datastax.driver.mapping.annotations.Query;
+import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,10 +48,16 @@ public class CassandraElementRepository implements ElementRepository {
                                         ElementEntityContext elementContext) {
     Set<String> elementIds = getVersionElementIds(context, elementContext);
 
-    return elementIds.stream()
-        .map(elementId -> get(context, elementContext, new ElementEntity(new Id(elementId))).get())
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    Collection<ElementEntity> elements = new ArrayList<>();
+    for (String elementId : elementIds) {
+      elements.add(get(context, elementContext, new ElementEntity(new Id(elementId)))
+          .orElseThrow(() -> new IllegalStateException(String.format(
+              "List version elements error: " +
+                  "Element %s, which appears as an element of item %s version %s, does not exist",
+              elementId, elementContext.getItemId().getValue(),
+              elementContext.getVersionId().getValue()))));
+    }
+    return elements;
   }
 
   @Override
@@ -92,7 +97,6 @@ public class CassandraElementRepository implements ElementRepository {
                                           ElementEntityContext elementContext,
                                           ElementEntity element) {
     Row row = getElementNamespaceAccessor(context).get(
-        elementContext.getSpace(),
         elementContext.getItemId().toString(),
         element.getId().toString()).one();
 
@@ -115,7 +119,6 @@ public class CassandraElementRepository implements ElementRepository {
   private void createElement(SessionContext context, ElementEntityContext elementContext,
                              ElementEntity element) {
     getElementNamespaceAccessor(context).create(
-        elementContext.getSpace(),
         elementContext.getItemId().toString(),
         element.getId().toString(),
         element.getNamespace().toString());
@@ -238,14 +241,13 @@ CREATE TABLE IF NOT EXISTS element_namespace (
   interface ElementNamespaceAccessor {
     @Query(
         "UPDATE element_namespace SET namespace=:ns " +
-            "WHERE space=:space AND item_id=:item AND element_id=:id ")
-    void create(@Param("space") String space,
-                @Param("item") String itemId,
+            "WHERE item_id=:item AND element_id=:id ")
+    void create(@Param("item") String itemId,
                 @Param("id") String elementId,
                 @Param("ns") String namespace);
 
-    @Query("SELECT namespace FROM element_namespace WHERE  space=? AND item_id=? AND element_id=?")
-    ResultSet get(String space, String itemId, String elementId);
+    @Query("SELECT namespace FROM element_namespace WHERE item_id=? AND element_id=?")
+    ResultSet get(String itemId, String elementId);
   }
 
   private static final class ElementNamespaceField {

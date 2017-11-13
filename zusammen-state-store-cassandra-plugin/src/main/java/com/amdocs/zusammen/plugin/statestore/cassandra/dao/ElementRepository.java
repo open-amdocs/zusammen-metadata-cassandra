@@ -14,9 +14,6 @@ public interface ElementRepository {
 
   void create(SessionContext context, ElementEntityContext elementContext, ElementEntity element);
 
-/*  void create(SessionContext context, ElementEntityContext elementContext,
-              Collection<ElementEntity> elements); //impl using batch*/
-
   void update(SessionContext context, ElementEntityContext elementContext, ElementEntity element);
 
   void delete(SessionContext context, ElementEntityContext elementContext, ElementEntity element);

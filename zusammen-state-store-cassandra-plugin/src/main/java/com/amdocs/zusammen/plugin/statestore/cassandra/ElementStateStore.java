@@ -26,11 +26,9 @@ import com.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntity;
 import com.amdocs.zusammen.plugin.statestore.cassandra.dao.types.ElementEntityContext;
 import com.amdocs.zusammen.sdk.state.types.StateElement;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 class ElementStateStore {
 
@@ -44,13 +42,24 @@ class ElementStateStore {
     }
 
     ElementRepository elementRepository = getElementRepository(context);
-    return elementRepository.get(context, elementEntityContext, new ElementEntity(elementId))
-        .map(ElementEntity::getSubElementIds).orElse(new HashSet<>()).stream()
-        .map(subElementId -> elementRepository
-            .get(context, elementEntityContext, new ElementEntity(subElementId)).get())
-        .filter(Objects::nonNull)
-        .map(subElement -> StateStoreUtil.getStateElement(elementEntityContext, subElement))
-        .collect(Collectors.toList());
+    String elementIdValue = elementId.getValue();
+    Collection<StateElement> subElements = new ArrayList<>();
+
+    Optional<ElementEntity> element =
+        elementRepository.get(context, elementEntityContext, new ElementEntity(elementId));
+    if (element.isPresent() && element.get().getSubElementIds() != null) {
+      for (Id subElementId : element.get().getSubElementIds()) {
+        ElementEntity subElement =
+            elementRepository.get(context, elementEntityContext, new ElementEntity(subElementId))
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                    "List sub elements error: item %s, version %s - " +
+                        "element %s, which appears as sub element of element %s, does not exist",
+                    elementContext.getItemId().getValue(), elementContext.getVersionId().getValue(),
+                    subElementId, elementIdValue)));
+        subElements.add(StateStoreUtil.getStateElement(elementEntityContext, subElement));
+      }
+    }
+    return subElements;
   }
 
   boolean isElementExist(SessionContext context, ElementContext elementContext,
@@ -63,7 +72,7 @@ class ElementStateStore {
   Namespace getElementNamespace(SessionContext context, Id itemId, Id elementId) {
     return getElementRepository(context)
         .getNamespace(context,
-            new ElementEntityContext(StateStoreUtil.getPrivateSpaceName(context), itemId, null),
+            new ElementEntityContext(null, itemId, null),
             new ElementEntity(elementId))
         .orElse(null);
   }

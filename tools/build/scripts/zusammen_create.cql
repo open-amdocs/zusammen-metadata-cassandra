@@ -34,11 +34,10 @@ CREATE TABLE IF NOT EXISTS version_elements (
 );
 
 CREATE TABLE IF NOT EXISTS element_namespace (
-	space text,
 	item_id text,
 	element_id text,
 	namespace text,
-	PRIMARY KEY (( space, item_id, element_id ))
+	PRIMARY KEY (( item_id, element_id ))
 );
 
 CREATE TABLE IF NOT EXISTS element (
