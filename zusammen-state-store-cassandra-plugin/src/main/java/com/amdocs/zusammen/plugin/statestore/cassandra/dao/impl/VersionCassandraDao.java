@@ -81,8 +81,8 @@ public class VersionCassandraDao implements VersionDao {
         .setRelations(JsonUtil.json2Object(row.getString(VersionField.RELATIONS),
             new TypeToken<ArrayList<Relation>>() {
             }.getType()));
-    itemVersion.setCreationTime(row.getDate(VersionField.CREATION_TIME));
-    itemVersion.setModificationTime(row.getDate(VersionField.MODIFICATION_TIME));
+    itemVersion.setCreationTime(row.getTimestamp(VersionField.CREATION_TIME));
+    itemVersion.setModificationTime(row.getTimestamp(VersionField.MODIFICATION_TIME));
     return itemVersion;
   }
 

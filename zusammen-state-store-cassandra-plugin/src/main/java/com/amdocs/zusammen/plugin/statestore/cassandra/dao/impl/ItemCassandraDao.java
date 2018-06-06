@@ -60,8 +60,8 @@ public class ItemCassandraDao implements ItemDao {
     Item item = new Item();
     item.setId(new Id(row.getString(ItemField.ITEM_ID)));
     item.setInfo(JsonUtil.json2Object(row.getString(ItemField.ITEM_INFO), Info.class));
-    item.setCreationTime(row.getDate(ItemField.CREATION_TIME));
-    item.setModificationTime(row.getDate(ItemField.MODIFICATION_TIME));
+    item.setCreationTime(row.getTimestamp(ItemField.CREATION_TIME));
+    item.setModificationTime(row.getTimestamp(ItemField.MODIFICATION_TIME));
     return item;
   }
 
