@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.amdocs.zusammen.plugin</groupId>
         <artifactId>zusammen-state-store</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.1</version>
     </parent>
 
     <artifactId>zusammen-state-store-cassandra-plugin</artifactId>
