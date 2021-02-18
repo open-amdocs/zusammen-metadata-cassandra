@@ -48,14 +48,14 @@ public class StateStoreImpl implements StateStore, HealthHelper {
     HealthInfo healthInfo = null;
     boolean queryResult = false;
     try {
-       queryResult = getKeepAliveDao(sessionContext).get(sessionContext);
+      queryResult = getKeepAliveDao(sessionContext).get(sessionContext);
     }  catch (Throwable t){
       LOGGER.error(t.getMessage(),t);
       healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.DOWN,t.getMessage());
       return new Response<>(healthInfo);
     }
     if(queryResult) {
-       healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.UP,"");
+      healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.UP,"");
       LOGGER.info("Health info:"+ healthInfo);
     } else {
       healthInfo = new HealthInfo(CASSANDRA_MODEL_NAME, HealthStatus.DOWN,"DB Schema does not exist.");
@@ -82,14 +82,14 @@ public class StateStoreImpl implements StateStore, HealthHelper {
 
   @Override
   public Response<Void> createItem(SessionContext context, Id itemId, Info itemInfo, Date
-      creationTime) {
+          creationTime) {
     itemStateStore.createItem(context, itemId, itemInfo, creationTime);
     return new Response(Void.TYPE);
   }
 
   @Override
   public Response<Void> updateItem(SessionContext context, Id itemId, Info itemInfo, Date
-      modificationTime) {
+          modificationTime) {
     itemStateStore.updateItem(context, itemId, itemInfo, modificationTime);
     return new Response(Void.TYPE);
   }
@@ -115,13 +115,13 @@ public class StateStoreImpl implements StateStore, HealthHelper {
 
   @Override
   public Response<Boolean> isItemVersionExist(SessionContext context, Space space, Id itemId, Id
-      versionId) {
+          versionId) {
     return new Response<>(versionStateStore.isItemVersionExist(context, space, itemId, versionId));
   }
 
   @Override
   public Response<ItemVersion> getItemVersion(SessionContext context, Space space, Id itemId, Id
-      versionId) {
+          versionId) {
     return new Response<>(versionStateStore.getItemVersion(context, space, itemId, versionId));
   }
 
@@ -131,7 +131,7 @@ public class StateStoreImpl implements StateStore, HealthHelper {
                                           Id versionId, ItemVersionData data,
                                           Date creationTime) {
     versionStateStore
-        .createItemVersion(context, space, itemId, baseVersionId, versionId, data, creationTime);
+            .createItemVersion(context, space, itemId, baseVersionId, versionId, data, creationTime);
     return new Response(Void.TYPE);
   }
 
@@ -156,7 +156,7 @@ public class StateStoreImpl implements StateStore, HealthHelper {
   public Response<Void> updateItemVersionModificationTime(SessionContext context,Space space, Id itemId,
                                                           Id versionId, Date modificationTime) {
     versionStateStore.updateItemVersionModificationTime(context,space,  itemId, versionId,
-        modificationTime);
+            modificationTime);
     return new Response(Void.TYPE);
   }
 
@@ -182,6 +182,12 @@ public class StateStoreImpl implements StateStore, HealthHelper {
   public Response<StateElement> getElement(SessionContext context, ElementContext elementContext,
                                            Id elementId) {
     return new Response<>(elementStateStore.getElement(context, elementContext, elementId));
+  }
+
+  @Override
+  public Response<StateElement> getElement(SessionContext context, Space space, ElementContext elementContext,
+                                           Id elementId) {
+    return getElement(context, elementContext, elementId);
   }
 
   @Override
